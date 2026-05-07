@@ -5,6 +5,14 @@ export const metadata: Metadata = {
   title: '로그인',
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  missing_code:         'Google 인증이 완료되지 않았습니다. 다시 시도해 주세요.',
+  exchange_failed:      '세션 생성에 실패했습니다. Supabase Callback URL 설정을 확인해 주세요.',
+  user_failed:          '사용자 정보를 가져오지 못했습니다. 다시 시도해 주세요.',
+  profile_query_failed: '계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  auth_failed:          '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
+}
+
 type SearchParams = Promise<{ error?: string }>
 
 export default async function LoginPage({
@@ -13,7 +21,7 @@ export default async function LoginPage({
   searchParams: SearchParams
 }) {
   const { error } = await searchParams
-  const hasError = error === 'auth_failed'
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_failed) : null
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-white px-4 py-12">
@@ -30,13 +38,18 @@ export default async function LoginPage({
         </div>
 
         {/* 오류 메시지 */}
-        {hasError && (
+        {errorMessage && (
           <div
             role="alert"
-            className="mb-6 flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
+            className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
           >
-            <span className="mt-0.5 flex-shrink-0">⚠️</span>
-            <span>로그인 중 문제가 발생했습니다. 다시 시도해 주세요.</span>
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 flex-shrink-0">⚠️</span>
+              <span>{errorMessage}</span>
+            </div>
+            {error && error !== 'auth_failed' && (
+              <p className="mt-1.5 pl-7 text-xs text-red-400">오류 코드: {error}</p>
+            )}
           </div>
         )}
 
