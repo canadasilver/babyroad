@@ -1,8 +1,20 @@
-import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-type CookieToSet = Parameters<CookieMethodsServer['setAll']>[0][number]
+type CookieToSet = {
+  name: string
+  value: string
+  options?: {
+    path?: string
+    domain?: string
+    maxAge?: number
+    expires?: Date
+    httpOnly?: boolean
+    secure?: boolean
+    sameSite?: 'lax' | 'strict' | 'none' | boolean
+  }
+}
 
 const protectedPathPrefixes = [
   '/dashboard',
@@ -44,13 +56,9 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll()
       },
       setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }) => {
-          request.cookies.set(name, value)
-        })
-
-        response = NextResponse.next({ request })
-
         cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value)
+          response = NextResponse.next({ request })
           response.cookies.set(name, value, options)
         })
       },
