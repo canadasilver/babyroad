@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 const ERROR_MESSAGES: Record<string, string> = {
   missing_code:          'Google 인증이 완료되지 않았습니다. 다시 시도해 주세요.',
   oauth_provider_error:  '로그인이 취소되었거나 Google 인증에 실패했습니다. 다시 시도해 주세요.',
-  exchange_failed:       '세션 생성에 실패했습니다. Supabase Callback URL 설정을 확인해 주세요.',
+  exchange_failed:       '세션 생성에 실패했습니다. 로그인 시작 주소와 콜백 주소가 같은지 확인해 주세요.',
   user_failed:           '사용자 정보를 가져오지 못했습니다. 다시 시도해 주세요.',
   profile_query_failed:  '계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
   auth_failed:           '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
@@ -18,6 +18,8 @@ const SAFE_REASONS = new Set([
   'redirect_uri_mismatch',
   'access_denied',
   'invalid_client',
+  'pkce_cookie_missing',
+  'expired_code',
   'provider_error',
   'unknown_provider_error',
 ])
@@ -61,6 +63,9 @@ export default async function LoginPage({
               <p className="mt-1.5 pl-7 text-xs text-red-400">오류 코드: {error}</p>
             )}
             {error === 'oauth_provider_error' && safeReason && (
+              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+            )}
+            {error === 'exchange_failed' && safeReason && (
               <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
             )}
           </div>

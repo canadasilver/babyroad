@@ -6,9 +6,14 @@ import type { Database } from '@/types/database'
 const REASON_MAP: [string, string][] = [
   ['redirect_uri_mismatch', 'redirect_uri_mismatch'],
   ['access_denied',         'access_denied'],
+  ['code verifier',         'pkce_cookie_missing'],
+  ['code_verifier',         'pkce_cookie_missing'],
+  ['both auth code and code verifier', 'pkce_cookie_missing'],
   ['invalid_client',        'invalid_client'],
   ['invalid_grant',         'invalid_client'],
   ['unauthorized_client',   'invalid_client'],
+  ['expired',               'expired_code'],
+  ['already used',          'expired_code'],
 ]
 
 function toSafeReason(oauthError: string, description: string | null): string {
@@ -35,21 +40,15 @@ export async function GET(request: NextRequest) {
 
   if (oauthError) {
     const reason = toSafeReason(oauthError, oauthErrorDescription)
-    console.error('[auth/callback] OAuth provider error:', oauthError, '| reason:', reason)
     loginUrl.searchParams.set('error', 'oauth_provider_error')
     loginUrl.searchParams.set('reason', reason)
     return NextResponse.redirect(loginUrl)
   }
 
   if (!code) {
-    console.error('[auth/callback] Missing code parameter')
     loginUrl.searchParams.set('error', 'missing_code')
     return NextResponse.redirect(loginUrl)
   }
-
-  // Log cookie names for PKCE diagnostics (no values)
-  const cookieNames = request.cookies.getAll().map(c => c.name)
-  console.log('[auth/callback] Cookie names:', cookieNames.join(', ') || '(none)')
 
   // Collect session cookies to apply to the redirect response
   const pendingCookies: CookieEntry[] = []
@@ -69,14 +68,14 @@ export async function GET(request: NextRequest) {
 
   const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
   if (sessionError) {
-    console.error('[auth/callback] exchangeCodeForSession failed:', sessionError.message)
+    const reason = toSafeReason('exchange_failed', sessionError.message)
     loginUrl.searchParams.set('error', 'exchange_failed')
+    loginUrl.searchParams.set('reason', reason)
     return NextResponse.redirect(loginUrl)
   }
 
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) {
-    console.error('[auth/callback] getUser failed:', userError?.message ?? 'user is null')
     loginUrl.searchParams.set('error', 'user_failed')
     return NextResponse.redirect(loginUrl)
   }
@@ -89,7 +88,6 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
 
   if (profileError) {
-    console.error('[auth/callback] profiles query failed:', profileError.message)
     loginUrl.searchParams.set('error', 'profile_query_failed')
     return NextResponse.redirect(loginUrl)
   }

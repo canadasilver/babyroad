@@ -12,9 +12,7 @@ export default function SocialLoginButtons() {
 
     try {
       const supabase = createClient()
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || window.location.origin
-      const redirectTo = `${appUrl}/auth/callback`
+      const redirectTo = `${window.location.origin}/auth/callback`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
