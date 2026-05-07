@@ -65,7 +65,7 @@ export default async function LoginPage({
           <h1 className="mt-3 text-2xl font-bold text-slate-900">베이비로드</h1>
           <p className="mt-0.5 text-xs font-medium tracking-widest text-slate-400">BabyRoad</p>
           <p className="mt-3 text-sm leading-relaxed text-slate-500">
-            임신부터 7세까지, 우리 아이 성장 로드맵
+            임신부터 학교가기 전까지, 우리 아이 성장 로드맵
           </p>
         </div>
 

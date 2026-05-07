@@ -2,15 +2,21 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
+  // Supabase is configured to return OAuth users to the site origin.
+  // Move the callback query to the server route so PKCE cookies are read
+  // from the same server-side cookie store that created them.
+  if (
+    request.nextUrl.pathname === '/' &&
+    (request.nextUrl.searchParams.has('code') || request.nextUrl.searchParams.has('error'))
+  ) {
+    const callbackUrl = request.nextUrl.clone()
+    callbackUrl.pathname = '/auth/callback'
+    return NextResponse.redirect(callbackUrl)
+  }
+
   // Auth routes handle their own Supabase interactions.
   // Running getUser() here interferes with the PKCE code verifier cookie.
   if (request.nextUrl.pathname.startsWith('/auth/')) {
-    return NextResponse.next()
-  }
-
-  // Root-level OAuth callbacks are exchanged in a client component because
-  // the current Supabase redirect allow-list contains the origin URL.
-  if (request.nextUrl.searchParams.has('code')) {
     return NextResponse.next()
   }
 

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: 'BabyRoad | 베이비로드',
     template: '%s | BabyRoad',
   },
-  description: '임신부터 7세까지, 우리 아이 성장 로드맵',
+  description: '임신부터 학교가기 전까지, 우리 아이 성장 로드맵',
   keywords: ['육아', '아이 성장', '예방접종', '발달', '베이비로드', 'babyroad'],
 }
 

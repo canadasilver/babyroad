@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import AuthCodeRedirect from '@/components/auth/AuthCodeRedirect'
 
 export const metadata: Metadata = {
   title: 'BabyRoad | 베이비로드',
-  description: '임신부터 7세까지, 우리 아이 성장 로드맵',
+  description: '임신부터 학교가기 전까지, 우리 아이 성장 로드맵',
 }
 
 const features = [
@@ -38,7 +37,6 @@ const features = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
-      <AuthCodeRedirect />
       <div className="mx-auto max-w-md px-4 py-12">
         {/* Hero */}
         <section className="text-center">
@@ -46,7 +44,7 @@ export default function LandingPage() {
           <h1 className="mt-4 text-3xl font-bold text-slate-900">베이비로드</h1>
           <p className="mt-1 text-sm font-medium text-orange-500">BabyRoad</p>
           <p className="mt-4 text-base leading-relaxed text-slate-600">
-            임신부터 7세까지,
+            임신부터 학교가기 전까지,
             <br />
             우리 아이 성장 로드맵
           </p>
