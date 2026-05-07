@@ -1,51 +1,9 @@
 'use client'
 
-import Script from 'next/script'
-import { isAuthApiError, type AuthError } from '@supabase/supabase-js'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-
-type GoogleCredentialResponse = {
-  credential?: string
-}
-
-type GoogleButtonOptions = {
-  type: 'standard'
-  theme: 'outline'
-  size: 'large'
-  text: 'continue_with'
-  shape: 'rectangular'
-  logo_alignment: 'center'
-  width: number
-}
-
-type GoogleAccountsId = {
-  initialize: (options: {
-    client_id: string
-    callback: (response: GoogleCredentialResponse) => void
-    ux_mode: 'popup'
-  }) => void
-  renderButton: (parent: HTMLElement, options: GoogleButtonOptions) => void
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: GoogleAccountsId
-      }
-    }
-  }
-}
-
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+import { useState } from 'react'
 
 export default function SocialLoginButtons() {
   const [loading, setLoading] = useState(false)
-  const [scriptReady, setScriptReady] = useState(false)
-  const [scriptFailed, setScriptFailed] = useState(false)
-  const [googleButtonReady, setGoogleButtonReady] = useState(false)
-  const googleButtonRef = useRef<HTMLDivElement | null>(null)
 
   const handleGoogleOAuthRedirect = async () => {
     if (loading) return
@@ -59,164 +17,21 @@ export default function SocialLoginButtons() {
     }
   }
 
-  const redirectToLoginError = useCallback((error: string, reason?: string) => {
-    const loginUrl = new URL('/login', window.location.origin)
-    loginUrl.searchParams.set('error', error)
-
-    if (reason) {
-      loginUrl.searchParams.set('reason', reason)
-    }
-
-    window.location.replace(loginUrl.toString())
-  }, [])
-
-  const handleCredentialResponse = useCallback(
-    async (response: GoogleCredentialResponse) => {
-      if (loading) return
-
-      const credential = response.credential
-
-      if (!credential) {
-        redirectToLoginError('id_token_failed', 'google_id_token_missing')
-        return
-      }
-
-      setLoading(true)
-
-      try {
-        const supabase = createClient()
-        const { error: signInError } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: credential,
-        })
-
-        if (signInError) {
-          redirectToLoginError('id_token_failed', getSafeAuthReason(signInError))
-          return
-        }
-
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser()
-
-        if (userError || !user) {
-          redirectToLoginError('user_failed')
-          return
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .is('deleted_at', null)
-          .maybeSingle()
-
-        if (profileError) {
-          redirectToLoginError('profile_query_failed')
-          return
-        }
-
-        window.location.replace(profile ? '/dashboard' : '/onboarding')
-      } catch {
-        redirectToLoginError('auth_failed')
-      }
-    },
-    [loading, redirectToLoginError]
-  )
-
-  useEffect(() => {
-    if (!scriptReady || !googleClientId || !googleButtonRef.current || googleButtonReady) {
-      return
-    }
-
-    let cancelled = false
-
-    async function renderGoogleButton() {
-      try {
-        const google = window.google
-
-        if (!google || !googleButtonRef.current || !googleClientId) {
-          return
-        }
-
-        if (cancelled) {
-          return
-        }
-
-        google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleCredentialResponse,
-          ux_mode: 'popup',
-        })
-
-        const buttonWidth = Math.min(
-          384,
-          Math.max(280, googleButtonRef.current.clientWidth || 320)
-        )
-
-        google.accounts.id.renderButton(googleButtonRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'rectangular',
-          logo_alignment: 'center',
-          width: buttonWidth,
-        })
-
-        setGoogleButtonReady(true)
-      } catch {
-        setScriptFailed(true)
-      }
-    }
-
-    void renderGoogleButton()
-
-    return () => {
-      cancelled = true
-    }
-  }, [handleCredentialResponse, googleButtonReady, scriptReady])
-
   return (
     <div className="flex flex-col gap-3">
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        strategy="afterInteractive"
-        onLoad={() => setScriptReady(true)}
-        onError={() => setScriptFailed(true)}
-      />
-
-      {/* Google — ID Token 방식. Supabase OAuth client secret 교환 실패를 피하기 위한 기본 로그인 경로다. */}
-      {googleClientId && !scriptFailed ? (
-        <div className="relative flex min-h-[46px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-300 bg-white px-1 py-1">
-          <div ref={googleButtonRef} className="flex w-full items-center justify-center" />
-          {(!googleButtonReady || loading) && (
-            <div className="absolute inset-0 flex items-center justify-center gap-3 bg-white text-sm font-medium text-slate-700">
-              {loading ? (
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {loading ? '로그인 중...' : 'Google로 계속하기'}
-            </div>
-          )}
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={handleGoogleOAuthRedirect}
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? (
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-          ) : (
-            <GoogleIcon />
-          )}
-          {loading ? '로그인 중...' : 'Google로 계속하기'}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={handleGoogleOAuthRedirect}
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? (
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+        ) : (
+          <GoogleIcon />
+        )}
+        {loading ? '로그인 중...' : 'Google로 계속하기'}
+      </button>
 
       {/* Kakao — 준비중 */}
       <div className="relative">
@@ -245,26 +60,6 @@ export default function SocialLoginButtons() {
       </div>
     </div>
   )
-}
-
-function getSafeAuthReason(error: AuthError): string {
-  if (isAuthApiError(error)) {
-    if (error.code === 'provider_disabled') return 'provider_disabled'
-    if (error.code === 'validation_failed') return 'google_client_mismatch'
-    if (error.code === 'invalid_credentials') return 'google_client_mismatch'
-  }
-
-  const message = `${error.name} ${error.message}`.toLowerCase()
-
-  if (message.includes('audience') || message.includes('aud')) {
-    return 'google_client_mismatch'
-  }
-
-  if (message.includes('provider')) {
-    return 'provider_error'
-  }
-
-  return 'provider_error'
 }
 
 function ComingSoonBadge() {
