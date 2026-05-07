@@ -4,9 +4,16 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const oauthError = searchParams.get('error')
+  const oauthErrorDescription = searchParams.get('error_description')
+
+  if (oauthError) {
+    console.error('[auth/callback] OAuth provider error:', oauthError, oauthErrorDescription)
+    return NextResponse.redirect(`${origin}/login?error=oauth_denied`)
+  }
 
   if (!code) {
-    console.error('[auth/callback] Missing code parameter')
+    console.error('[auth/callback] Missing code parameter. Full URL:', request.url)
     return NextResponse.redirect(`${origin}/login?error=missing_code`)
   }
 
