@@ -14,15 +14,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   auth_failed:           '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
 }
 
-type SearchParams = Promise<{ error?: string }>
+const SAFE_REASONS = new Set([
+  'redirect_uri_mismatch',
+  'access_denied',
+  'invalid_client',
+  'provider_error',
+  'unknown_provider_error',
+])
+
+type SearchParams = Promise<{ error?: string; reason?: string }>
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: SearchParams
 }) {
-  const { error } = await searchParams
+  const { error, reason } = await searchParams
   const errorMessage = error ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_failed) : null
+  const safeReason = reason && SAFE_REASONS.has(reason) ? reason : null
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-white px-4 py-12">
@@ -50,6 +59,9 @@ export default async function LoginPage({
             </div>
             {error && error !== 'auth_failed' && (
               <p className="mt-1.5 pl-7 text-xs text-red-400">오류 코드: {error}</p>
+            )}
+            {error === 'oauth_provider_error' && safeReason && (
+              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
             )}
           </div>
         )}

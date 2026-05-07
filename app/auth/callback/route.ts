@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+const REASON_MAP: [string, string][] = [
+  ['redirect_uri_mismatch', 'redirect_uri_mismatch'],
+  ['access_denied',         'access_denied'],
+  ['invalid_client',        'invalid_client'],
+  ['invalid_grant',         'invalid_client'],
+  ['unauthorized_client',   'invalid_client'],
+]
+
+function toSafeReason(oauthError: string, description: string | null): string {
+  const combined = `${oauthError} ${description ?? ''}`.toLowerCase()
+  for (const [keyword, reason] of REASON_MAP) {
+    if (combined.includes(keyword)) return reason
+  }
+  return 'provider_error'
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -8,8 +24,11 @@ export async function GET(request: Request) {
   const oauthErrorDescription = searchParams.get('error_description')
 
   if (oauthError) {
-    console.error('[auth/callback] OAuth provider error:', oauthError, oauthErrorDescription ?? '')
-    return NextResponse.redirect(`${origin}/login?error=oauth_provider_error`)
+    const reason = toSafeReason(oauthError, oauthErrorDescription)
+    console.error('[auth/callback] OAuth provider error:', oauthError, '| reason:', reason)
+    return NextResponse.redirect(
+      `${origin}/login?error=oauth_provider_error&reason=${reason}`
+    )
   }
 
   if (!code) {
