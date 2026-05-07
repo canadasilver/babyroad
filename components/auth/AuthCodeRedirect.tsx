@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+
+const AUTH_STEP_TIMEOUT_MS = 12000
 
 const AUTH_ERROR_REASON_MAP: [string, string][] = [
   ['access_denied', 'access_denied'],
@@ -12,6 +14,7 @@ const AUTH_ERROR_REASON_MAP: [string, string][] = [
   ['user email', 'google_scope_missing'],
   ['userinfo.email', 'google_scope_missing'],
   ['expired', 'expired_code'],
+  ['timeout', 'provider_timeout'],
 ]
 
 function getSafeReason(error: unknown) {
@@ -24,6 +27,17 @@ function getSafeReason(error: unknown) {
   }
 
   return 'provider_error'
+}
+
+function withTimeout<T>(promise: PromiseLike<T>, label: string) {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => {
+        reject(new Error(`${label}_timeout`))
+      }, AUTH_STEP_TIMEOUT_MS)
+    }),
+  ])
 }
 
 function replaceToLogin(error: string, reason?: string) {
@@ -39,8 +53,13 @@ function replaceToLogin(error: string, reason?: string) {
 
 export default function AuthCodeRedirect() {
   const [processing, setProcessing] = useState(false)
+  const hasStartedRef = useRef(false)
 
   useEffect(() => {
+    if (hasStartedRef.current) {
+      return
+    }
+
     const url = new URL(window.location.href)
     const code = url.searchParams.get('code')
     const oauthError = url.searchParams.get('error')
@@ -51,21 +70,25 @@ export default function AuthCodeRedirect() {
       return
     }
 
-    if (!code || processing) {
+    if (!code) {
       return
     }
 
+    hasStartedRef.current = true
     const authCode = code
-    let cancelled = false
+    let mounted = true
 
     async function exchangeCode() {
       setProcessing(true)
 
       try {
         const supabase = createClient()
-        const { error: sessionError } = await supabase.auth.exchangeCodeForSession(authCode)
+        const { error: sessionError } = await withTimeout(
+          supabase.auth.exchangeCodeForSession(authCode),
+          'exchange_code'
+        )
 
-        if (cancelled) return
+        if (!mounted) return
 
         if (sessionError) {
           replaceToLogin('exchange_failed', getSafeReason(sessionError))
@@ -75,23 +98,26 @@ export default function AuthCodeRedirect() {
         const {
           data: { user },
           error: userError,
-        } = await supabase.auth.getUser()
+        } = await withTimeout(supabase.auth.getUser(), 'get_user')
 
-        if (cancelled) return
+        if (!mounted) return
 
         if (userError || !user) {
           replaceToLogin('user_failed')
           return
         }
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .is('deleted_at', null)
-          .maybeSingle()
+        const { data: profile, error: profileError } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .is('deleted_at', null)
+            .maybeSingle(),
+          'profile_query'
+        )
 
-        if (cancelled) return
+        if (!mounted) return
 
         if (profileError) {
           replaceToLogin('profile_query_failed')
@@ -101,7 +127,7 @@ export default function AuthCodeRedirect() {
         window.history.replaceState(null, '', window.location.origin)
         window.location.replace(profile ? '/dashboard' : '/onboarding')
       } catch (error) {
-        if (!cancelled) {
+        if (mounted) {
           replaceToLogin('exchange_failed', getSafeReason(error))
         }
       }
@@ -110,9 +136,9 @@ export default function AuthCodeRedirect() {
     void exchangeCode()
 
     return () => {
-      cancelled = true
+      mounted = false
     }
-  }, [processing])
+  }, [])
 
   if (!processing) {
     return null
