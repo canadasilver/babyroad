@@ -1,7 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { getSupabaseServerConfig } from '@/lib/supabase/server'
-import type { Database } from '@/types/database'
 
 const REASON_MAP: [string, string][] = [
   ['redirect_uri_mismatch', 'redirect_uri_mismatch'],
@@ -24,12 +21,6 @@ function toSafeReason(oauthError: string, description: string | null): string {
   return 'provider_error'
 }
 
-type CookieEntry = {
-  name: string
-  value: string
-  options?: Record<string, unknown>
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
@@ -50,55 +41,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Collect session cookies to apply to the redirect response
-  const pendingCookies: CookieEntry[] = []
+  const confirmUrl = new URL('/auth/confirm', request.url)
+  confirmUrl.searchParams.set('code', code)
 
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseServerConfig()
-
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
-      },
-      setAll(cookiesToSet: CookieEntry[]) {
-        cookiesToSet.forEach(c => pendingCookies.push(c))
-      },
-    },
-  })
-
-  const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-  if (sessionError) {
-    const reason = toSafeReason('exchange_failed', sessionError.message)
-    loginUrl.searchParams.set('error', 'exchange_failed')
-    loginUrl.searchParams.set('reason', reason)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) {
-    loginUrl.searchParams.set('error', 'user_failed')
-    return NextResponse.redirect(loginUrl)
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .maybeSingle()
-
-  if (profileError) {
-    loginUrl.searchParams.set('error', 'profile_query_failed')
-    return NextResponse.redirect(loginUrl)
-  }
-
-  const destination = profile ? '/dashboard' : '/onboarding'
-  const response = NextResponse.redirect(new URL(destination, request.url))
-
-  // Apply session cookies to the redirect response
-  pendingCookies.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
-  })
-
-  return response
+  return NextResponse.redirect(confirmUrl)
 }
