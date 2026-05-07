@@ -11,6 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   exchange_failed:       '세션 생성에 실패했습니다. 로그인 시작 주소와 콜백 주소가 같은지 확인해 주세요.',
   user_failed:           '사용자 정보를 가져오지 못했습니다. 다시 시도해 주세요.',
   profile_query_failed:  '계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  id_token_failed:       'Google 계정 인증 후 세션 생성에 실패했습니다. Google Client ID 설정을 확인해 주세요.',
   auth_failed:           '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
 }
 
@@ -22,7 +23,10 @@ const REASON_MESSAGES: Record<string, string> = {
   provider_disabled: 'Supabase Authentication Providers에서 Google Provider가 활성화되어 있는지 확인해 주세요.',
   provider_email_needs_verification: 'Google 계정의 이메일 확인 상태를 확인한 뒤 다시 시도해 주세요.',
   provider_timeout: 'Google 또는 Supabase 인증 응답이 지연되었습니다. 잠시 후 다시 시도해 주세요.',
-  provider_error: 'Google Cloud OAuth 클라이언트의 Authorized redirect URI와 Supabase Google Provider 설정을 확인해 주세요.',
+  google_id_token_missing: 'Google 인증 응답이 비어 있습니다. 새 탭에서 다시 시도해 주세요.',
+  google_client_mismatch: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID, Supabase Google Provider Client ID, Google Cloud OAuth Client ID가 모두 같은지 확인해 주세요.',
+  google_nonce_mismatch: 'Google 인증 nonce 검증에 실패했습니다. 새 탭에서 다시 시도해 주세요.',
+  provider_error: 'Redirect URI가 맞다면 Supabase Google Provider의 Client ID와 Client Secret을 다시 저장해 주세요.',
 }
 
 const SAFE_REASONS = new Set([
@@ -35,6 +39,9 @@ const SAFE_REASONS = new Set([
   'provider_disabled',
   'provider_email_needs_verification',
   'provider_timeout',
+  'google_id_token_missing',
+  'google_client_mismatch',
+  'google_nonce_mismatch',
   'provider_error',
   'unknown_provider_error',
 ])
@@ -81,6 +88,9 @@ export default async function LoginPage({
               <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
             )}
             {error === 'exchange_failed' && safeReason && (
+              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+            )}
+            {error === 'id_token_failed' && safeReason && (
               <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
             )}
             {safeReason && REASON_MESSAGES[safeReason] && (
