@@ -8,12 +8,12 @@ export async function GET(request: Request) {
   const oauthErrorDescription = searchParams.get('error_description')
 
   if (oauthError) {
-    console.error('[auth/callback] OAuth provider error:', oauthError, oauthErrorDescription)
-    return NextResponse.redirect(`${origin}/login?error=oauth_denied`)
+    console.error('[auth/callback] OAuth provider error:', oauthError, oauthErrorDescription ?? '')
+    return NextResponse.redirect(`${origin}/login?error=oauth_provider_error`)
   }
 
   if (!code) {
-    console.error('[auth/callback] Missing code parameter. Full URL:', request.url)
+    console.error('[auth/callback] Missing code parameter')
     return NextResponse.redirect(`${origin}/login?error=missing_code`)
   }
 

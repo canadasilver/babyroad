@@ -6,12 +6,12 @@ export const metadata: Metadata = {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  missing_code:         'Google 인증이 완료되지 않았습니다. 다시 시도해 주세요.',
-  oauth_denied:         '로그인이 취소되었거나 Google 인증에 실패했습니다. 다시 시도해 주세요.',
-  exchange_failed:      '세션 생성에 실패했습니다. Supabase Callback URL 설정을 확인해 주세요.',
-  user_failed:          '사용자 정보를 가져오지 못했습니다. 다시 시도해 주세요.',
-  profile_query_failed: '계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
-  auth_failed:          '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
+  missing_code:          'Google 인증이 완료되지 않았습니다. 다시 시도해 주세요.',
+  oauth_provider_error:  '로그인이 취소되었거나 Google 인증에 실패했습니다. 다시 시도해 주세요.',
+  exchange_failed:       '세션 생성에 실패했습니다. Supabase Callback URL 설정을 확인해 주세요.',
+  user_failed:           '사용자 정보를 가져오지 못했습니다. 다시 시도해 주세요.',
+  profile_query_failed:  '계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  auth_failed:           '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
 }
 
 type SearchParams = Promise<{ error?: string }>
