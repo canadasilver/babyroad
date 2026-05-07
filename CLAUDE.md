@@ -59,6 +59,7 @@ babyroad/
 - `auth-agent.md`
 - `community-agent.md`
 - `deploy-agent.md`
+- `qa-review-agent.md`
 - `security-agent.md`
 
 **skills/**
