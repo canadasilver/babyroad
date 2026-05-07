@@ -23,7 +23,6 @@ type GoogleAccountsId = {
   initialize: (options: {
     client_id: string
     callback: (response: GoogleCredentialResponse) => void
-    nonce: string
     ux_mode: 'popup'
   }) => void
   renderButton: (parent: HTMLElement, options: GoogleButtonOptions) => void
@@ -47,7 +46,6 @@ export default function SocialLoginButtons() {
   const [scriptFailed, setScriptFailed] = useState(false)
   const [googleButtonReady, setGoogleButtonReady] = useState(false)
   const googleButtonRef = useRef<HTMLDivElement | null>(null)
-  const nonceRef = useRef<string | null>(null)
 
   const handleGoogleOAuthRedirect = async () => {
     if (loading) return
@@ -77,9 +75,8 @@ export default function SocialLoginButtons() {
       if (loading) return
 
       const credential = response.credential
-      const nonce = nonceRef.current
 
-      if (!credential || !nonce) {
+      if (!credential) {
         redirectToLoginError('id_token_failed', 'google_id_token_missing')
         return
       }
@@ -91,7 +88,6 @@ export default function SocialLoginButtons() {
         const { error: signInError } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: credential,
-          nonce,
         })
 
         if (signInError) {
@@ -144,17 +140,13 @@ export default function SocialLoginButtons() {
           return
         }
 
-        const nonce = createNonce()
-        const hashedNonce = await createSha256Hex(nonce)
-
-        if (cancelled) return
-
-        nonceRef.current = nonce
+        if (cancelled) {
+          return
+        }
 
         google.accounts.id.initialize({
           client_id: googleClientId,
           callback: handleCredentialResponse,
-          nonce: hashedNonce,
           ux_mode: 'popup',
         })
 
@@ -268,29 +260,11 @@ function getSafeAuthReason(error: AuthError): string {
     return 'google_client_mismatch'
   }
 
-  if (message.includes('nonce')) {
-    return 'google_nonce_mismatch'
-  }
-
   if (message.includes('provider')) {
     return 'provider_error'
   }
 
   return 'provider_error'
-}
-
-function createNonce() {
-  const randomBytes = new Uint8Array(32)
-  crypto.getRandomValues(randomBytes)
-  return btoa(String.fromCharCode(...randomBytes))
-}
-
-async function createSha256Hex(value: string) {
-  const encoded = new TextEncoder().encode(value)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-
-  return hashArray.map((item) => item.toString(16).padStart(2, '0')).join('')
 }
 
 function ComingSoonBadge() {

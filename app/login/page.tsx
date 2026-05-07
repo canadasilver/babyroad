@@ -25,7 +25,6 @@ const REASON_MESSAGES: Record<string, string> = {
   provider_timeout: 'Google 또는 Supabase 인증 응답이 지연되었습니다. 잠시 후 다시 시도해 주세요.',
   google_id_token_missing: 'Google 인증 응답이 비어 있습니다. 새 탭에서 다시 시도해 주세요.',
   google_client_mismatch: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID, Supabase Google Provider Client ID, Google Cloud OAuth Client ID가 모두 같은지 확인해 주세요.',
-  google_nonce_mismatch: 'Google 인증 nonce 검증에 실패했습니다. 새 탭에서 다시 시도해 주세요.',
   provider_error: 'Redirect URI가 맞다면 Supabase Google Provider의 Client ID와 Client Secret을 다시 저장해 주세요.',
 }
 
@@ -41,7 +40,6 @@ const SAFE_REASONS = new Set([
   'provider_timeout',
   'google_id_token_missing',
   'google_client_mismatch',
-  'google_nonce_mismatch',
   'provider_error',
   'unknown_provider_error',
 ])
