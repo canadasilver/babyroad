@@ -1,7 +1,22 @@
 import { createServerClient } from '@supabase/ssr'
+import { isAuthApiError, type AuthError } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabaseServerConfig } from '@/lib/supabase/server'
 import type { Database } from '@/types/database'
+
+const AUTH_ERROR_CODE_REASON_MAP: Record<string, string> = {
+  bad_code_verifier: 'pkce_cookie_missing',
+  bad_oauth_callback: 'provider_error',
+  bad_oauth_state: 'provider_error',
+  flow_state_expired: 'expired_code',
+  flow_state_not_found: 'expired_code',
+  invalid_credentials: 'invalid_client',
+  oauth_provider_not_supported: 'provider_disabled',
+  provider_disabled: 'provider_disabled',
+  provider_email_needs_verification: 'provider_email_needs_verification',
+  request_timeout: 'provider_timeout',
+  unexpected_failure: 'provider_error',
+}
 
 const REASON_MAP: [string, string][] = [
   ['redirect_uri_mismatch', 'redirect_uri_mismatch'],
@@ -9,11 +24,20 @@ const REASON_MAP: [string, string][] = [
   ['code verifier', 'pkce_cookie_missing'],
   ['code_verifier', 'pkce_cookie_missing'],
   ['both auth code and code verifier', 'pkce_cookie_missing'],
+  ['bad code verifier', 'pkce_cookie_missing'],
+  ['flow state', 'expired_code'],
   ['invalid_client', 'invalid_client'],
   ['invalid_grant', 'invalid_client'],
   ['unauthorized_client', 'invalid_client'],
+  ['invalid credentials', 'invalid_client'],
+  ['provider disabled', 'provider_disabled'],
+  ['provider is disabled', 'provider_disabled'],
+  ['user email', 'google_scope_missing'],
+  ['openid', 'google_scope_missing'],
+  ['scope', 'google_scope_missing'],
   ['expired', 'expired_code'],
   ['already used', 'expired_code'],
+  ['timeout', 'provider_timeout'],
 ]
 
 type CookieEntry = {
@@ -30,6 +54,15 @@ function toSafeReason(oauthError: string, description: string | null): string {
   }
 
   return 'provider_error'
+}
+
+function toSafeReasonFromAuthError(error: AuthError): string {
+  if (isAuthApiError(error) && error.code) {
+    const reason = AUTH_ERROR_CODE_REASON_MAP[error.code]
+    if (reason) return reason
+  }
+
+  return toSafeReason(error.name, error.message)
 }
 
 function redirectToLogin(request: NextRequest, error: string, reason?: string) {
@@ -75,7 +108,7 @@ export async function GET(request: NextRequest) {
   const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (sessionError) {
-    const reason = toSafeReason('exchange_failed', sessionError.message)
+    const reason = toSafeReasonFromAuthError(sessionError)
     return redirectToLogin(request, 'exchange_failed', reason)
   }
 

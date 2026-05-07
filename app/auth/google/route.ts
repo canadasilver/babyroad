@@ -9,6 +9,8 @@ type CookieEntry = {
   options?: Parameters<NextResponse['cookies']['set']>[2]
 }
 
+const GOOGLE_OAUTH_SCOPES = 'openid email profile'
+
 function redirectToLogin(request: NextRequest, error: string) {
   const loginUrl = new URL('/login', request.url)
   loginUrl.searchParams.set('error', error)
@@ -37,8 +39,8 @@ export async function GET(request: NextRequest) {
     provider: 'google',
     options: {
       redirectTo,
+      scopes: GOOGLE_OAUTH_SCOPES,
       queryParams: {
-        access_type: 'offline',
         prompt: 'select_account',
       },
     },

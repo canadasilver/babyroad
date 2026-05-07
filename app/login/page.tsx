@@ -14,12 +14,27 @@ const ERROR_MESSAGES: Record<string, string> = {
   auth_failed:           '로그인 중 문제가 발생했습니다. 다시 시도해 주세요.',
 }
 
+const REASON_MESSAGES: Record<string, string> = {
+  redirect_uri_mismatch: 'Google Cloud와 Supabase Redirect URL 설정을 다시 확인해 주세요.',
+  invalid_client: 'Supabase Google Provider의 Client ID와 Client Secret이 같은 Google OAuth 클라이언트의 값인지 확인해 주세요.',
+  pkce_cookie_missing: '브라우저 쿠키가 막혔거나 오래된 로그인 시도가 남아 있습니다. 새 탭에서 다시 시도해 주세요.',
+  google_scope_missing: 'Google OAuth 동의 화면의 Data Access에 openid, email, profile scope가 허용되어 있는지 확인해 주세요.',
+  provider_disabled: 'Supabase Authentication Providers에서 Google Provider가 활성화되어 있는지 확인해 주세요.',
+  provider_email_needs_verification: 'Google 계정의 이메일 확인 상태를 확인한 뒤 다시 시도해 주세요.',
+  provider_timeout: 'Google 또는 Supabase 인증 응답이 지연되었습니다. 잠시 후 다시 시도해 주세요.',
+  provider_error: 'Google Cloud OAuth 클라이언트의 Authorized redirect URI와 Supabase Google Provider 설정을 확인해 주세요.',
+}
+
 const SAFE_REASONS = new Set([
   'redirect_uri_mismatch',
   'access_denied',
   'invalid_client',
   'pkce_cookie_missing',
   'expired_code',
+  'google_scope_missing',
+  'provider_disabled',
+  'provider_email_needs_verification',
+  'provider_timeout',
   'provider_error',
   'unknown_provider_error',
 ])
@@ -67,6 +82,11 @@ export default async function LoginPage({
             )}
             {error === 'exchange_failed' && safeReason && (
               <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+            )}
+            {safeReason && REASON_MESSAGES[safeReason] && (
+              <p className="mt-2 pl-7 text-xs leading-relaxed text-red-500">
+                확인 필요: {REASON_MESSAGES[safeReason]}
+              </p>
             )}
           </div>
         )}
