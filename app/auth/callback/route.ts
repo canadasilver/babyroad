@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { getSupabaseServerConfig } from '@/lib/supabase/server'
 import type { Database } from '@/types/database'
 
 const REASON_MAP: [string, string][] = [
@@ -16,6 +17,12 @@ function toSafeReason(oauthError: string, description: string | null): string {
     if (combined.includes(keyword)) return reason
   }
   return 'provider_error'
+}
+
+type CookieEntry = {
+  name: string
+  value: string
+  options?: Record<string, unknown>
 }
 
 export async function GET(request: NextRequest) {
@@ -40,28 +47,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Log available cookie names for diagnostics (no values)
+  // Log cookie names for PKCE diagnostics (no values)
   const cookieNames = request.cookies.getAll().map(c => c.name)
-  console.log('[auth/callback] Request cookie names:', cookieNames.join(', ') || '(none)')
+  console.log('[auth/callback] Cookie names:', cookieNames.join(', ') || '(none)')
 
-  // Collect cookies to write onto the final redirect response
-  type CookieEntry = { name: string; value: string; options?: Record<string, unknown> }
+  // Collect session cookies to apply to the redirect response
   const pendingCookies: CookieEntry[] = []
 
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: CookieEntry[]) {
-          cookiesToSet.forEach(c => pendingCookies.push(c))
-        },
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseServerConfig()
+
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet: CookieEntry[]) {
+        cookiesToSet.forEach(c => pendingCookies.push(c))
+      },
+    },
+  })
 
   const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
   if (sessionError) {
