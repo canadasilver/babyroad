@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 export default function SocialLoginButtons() {
   const [loading, setLoading] = useState(false)
@@ -11,24 +10,7 @@ export default function SocialLoginButtons() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback`
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
-      })
-
-      if (error) {
-        window.location.href = `${window.location.origin}/login?error=auth_failed`
-      }
-      // 성공 시 Supabase가 OAuth 제공자 페이지로 리디렉트 — setLoading 유지
+      window.location.assign('/auth/google')
     } catch {
       window.location.href = `${window.location.origin}/login?error=auth_failed`
       setLoading(false)
