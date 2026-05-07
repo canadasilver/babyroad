@@ -7,6 +7,13 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/auth/')) {
     return NextResponse.next()
   }
+
+  // Root-level OAuth callbacks are exchanged in a client component because
+  // the current Supabase redirect allow-list contains the origin URL.
+  if (request.nextUrl.searchParams.has('code')) {
+    return NextResponse.next()
+  }
+
   return updateSession(request)
 }
 

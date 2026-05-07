@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import AuthCodeRedirect from '@/components/auth/AuthCodeRedirect'
 
 export const metadata: Metadata = {
   title: 'BabyRoad | 베이비로드',
@@ -37,6 +38,7 @@ const features = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
+      <AuthCodeRedirect />
       <div className="mx-auto max-w-md px-4 py-12">
         {/* Hero */}
         <section className="text-center">
