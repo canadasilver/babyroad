@@ -19,6 +19,11 @@ export function createClient() {
 
   return createBrowserClient<Database>(
     supabaseUrl,
-    supabaseAnonKey
+    supabaseAnonKey,
+    {
+      auth: {
+        detectSessionInUrl: false,
+      },
+    }
   )
 }
