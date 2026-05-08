@@ -52,6 +52,34 @@ declare global {
 const GOOGLE_SCRIPT_ID = 'google-identity-services'
 const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client'
 
+function detectBlockedInAppBrowser(userAgent: string) {
+  const lowerUserAgent = userAgent.toLowerCase()
+
+  if (lowerUserAgent.includes('naver')) return '네이버 앱'
+  if (lowerUserAgent.includes('kakaotalk')) return '카카오톡'
+  if (lowerUserAgent.includes('instagram')) return '인스타그램'
+  if (lowerUserAgent.includes('fban') || lowerUserAgent.includes('fbav')) return '페이스북'
+  if (lowerUserAgent.includes('line/')) return '라인'
+  if (lowerUserAgent.includes('; wv)')) return '앱 내장 브라우저'
+
+  return null
+}
+
+function openCurrentPageInExternalBrowser() {
+  const currentUrl = window.location.href
+
+  if (/Android/i.test(window.navigator.userAgent)) {
+    const url = new URL(currentUrl)
+    const scheme = url.protocol.replace(':', '')
+    const fallbackUrl = encodeURIComponent(currentUrl)
+
+    window.location.href = `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=${scheme};package=com.android.chrome;S.browser_fallback_url=${fallbackUrl};end`
+    return
+  }
+
+  window.open(currentUrl, '_blank', 'noopener,noreferrer')
+}
+
 function redirectToLoginError(error: string, reason?: string) {
   const loginUrl = new URL('/login', window.location.origin)
   loginUrl.searchParams.set('error', error)
@@ -114,6 +142,7 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
   const [isGoogleReady, setIsGoogleReady] = useState(false)
   const [googleSetupError, setGoogleSetupError] = useState<GoogleSetupErrorReason | null>(null)
   const [setupRetryCount, setSetupRetryCount] = useState(0)
+  const [blockedInAppBrowserName, setBlockedInAppBrowserName] = useState<string | null>(null)
 
   const handleGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
     if (isLoading) return
@@ -167,6 +196,16 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
 
     async function setupGoogleButton() {
       const normalizedGoogleClientId = googleClientId.trim()
+      const inAppBrowserName = detectBlockedInAppBrowser(window.navigator.userAgent)
+
+      if (inAppBrowserName) {
+        setBlockedInAppBrowserName(inAppBrowserName)
+        setGoogleSetupError(null)
+        setIsGoogleReady(false)
+        return
+      }
+
+      setBlockedInAppBrowserName(null)
 
       if (!normalizedGoogleClientId) {
         setGoogleSetupError('missing_client_id')
@@ -236,48 +275,69 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative min-h-[48px] overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm transition-colors hover:bg-slate-50">
-        {googleSetupError ? (
+      {blockedInAppBrowserName && (
+        <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-4 text-sm text-orange-800">
+          <p className="font-semibold">Google 로그인은 외부 브라우저에서 진행해 주세요.</p>
+          <p className="mt-2 leading-relaxed">
+            현재 {blockedInAppBrowserName} 안에서 접속 중입니다. Google 보안 정책 때문에 앱 내장 브라우저에서는 로그인이 차단될 수 있어요.
+          </p>
           <button
             type="button"
-            onClick={handleGoogleSetupRetry}
-            className="flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
+            onClick={openCurrentPageInExternalBrowser}
+            className="mt-3 flex w-full items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 active:bg-orange-700"
           >
-            <GoogleIcon />
-            {googleSetupError === 'missing_client_id' ? 'Google 설정 확인 필요' : 'Google 로그인 다시 시도'}
+            외부 브라우저에서 열기
           </button>
-        ) : (
-          <>
-            <div
-              ref={buttonRef}
-              className={`absolute inset-0 z-20 flex h-12 w-full items-center justify-center overflow-hidden rounded-xl ${
-                isGoogleReady ? 'opacity-[0.01]' : 'pointer-events-none opacity-0'
-              }`}
-            />
+          <p className="mt-2 text-xs leading-relaxed text-orange-700">
+            버튼이 동작하지 않으면 오른쪽 아래 메뉴에서 브라우저로 열기 또는 Chrome으로 열기를 선택해 주세요.
+          </p>
+        </div>
+      )}
 
-            <div className="pointer-events-none relative z-10 flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700">
-              {isGoogleReady ? (
-                <>
-                  <GoogleIcon />
-                  Google로 계속하기
-                </>
-              ) : (
-                <>
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-                  Google 로그인 준비 중...
-                </>
-              )}
-            </div>
+      {!blockedInAppBrowserName && (
+        <div className="relative min-h-[48px] overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm transition-colors hover:bg-slate-50">
+          {googleSetupError ? (
+            <button
+              type="button"
+              onClick={handleGoogleSetupRetry}
+              className="flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
+            >
+              <GoogleIcon />
+              {googleSetupError === 'missing_client_id' ? 'Google 설정 확인 필요' : 'Google 로그인 다시 시도'}
+            </button>
+          ) : (
+            <>
+              <div
+                ref={buttonRef}
+                className={`absolute inset-0 z-20 flex h-12 w-full items-center justify-center overflow-hidden rounded-xl ${
+                  isGoogleReady ? 'opacity-[0.01]' : 'pointer-events-none opacity-0'
+                }`}
+              />
 
-            {isLoading && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center gap-3 bg-white/95 px-4 py-3 text-sm font-medium text-slate-700">
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-                Google 세션 생성 중...
+              <div className="pointer-events-none relative z-10 flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700">
+                {isGoogleReady ? (
+                  <>
+                    <GoogleIcon />
+                    Google로 계속하기
+                  </>
+                ) : (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                    Google 로그인 준비 중...
+                  </>
+                )}
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              {isLoading && (
+                <div className="absolute inset-0 z-30 flex items-center justify-center gap-3 bg-white/95 px-4 py-3 text-sm font-medium text-slate-700">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                  Google 세션 생성 중...
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Kakao는 MVP 확장 단계에서 연결합니다. */}
       <div className="relative">
