@@ -48,6 +48,7 @@ export type ChildHealthRecord = Database['public']['Tables']['child_health_recor
 export type ChildVaccinationRecord = Database['public']['Tables']['child_vaccination_records']['Row']
 
 export type FeedingType = 'breast_milk' | 'formula' | 'baby_food' | 'solid_food' | 'snack' | 'water'
+export type FeedingUnit = 'ml' | 'g' | 'count' | 'spoon' | 'other'
 export type SleepType = 'day_sleep' | 'night_sleep'
 export type VaccinationStatus = 'scheduled' | 'completed' | 'delayed' | 'skipped' | 'consult_required'
 

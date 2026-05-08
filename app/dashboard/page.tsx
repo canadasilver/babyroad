@@ -10,12 +10,30 @@ import ChildSummaryCard from '@/components/child/ChildSummaryCard'
 import MedicalDisclaimer from '@/components/common/MedicalDisclaimer'
 import {
   formatDate,
+  formatDateTime,
   calculateVaccinationUiStatus,
   getVaccinationScheduledDate,
 } from '@/lib/date'
 import { formatNumber } from '@/lib/utils'
 import type { Child, ChildGrowthRecord } from '@/types/child'
 import type { Tables } from '@/types/database'
+
+const FEEDING_TYPE_LABEL: Record<string, string> = {
+  breast_milk: '모유',
+  formula: '분유',
+  baby_food: '이유식',
+  solid_food: '유아식',
+  snack: '간식',
+  water: '물',
+}
+
+const UNIT_LABEL: Record<string, string> = {
+  ml: 'ml',
+  g: 'g',
+  count: '회',
+  spoon: '숟가락',
+  other: '',
+}
 
 export const metadata: Metadata = {
   title: '대시보드',
@@ -47,6 +65,7 @@ export default async function DashboardPage() {
   const child = childList[0] ?? null
 
   let latestGrowthRecord: ChildGrowthRecord | null = null
+  let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
   let nextVaccination: {
     name: string
     doseLabel: string
@@ -55,41 +74,52 @@ export default async function DashboardPage() {
   } | null = null
 
   if (child) {
-    const [growthResult, vaccineResult, scheduleResult, recordResult] = await Promise.all([
-      supabase
-        .from('child_growth_records')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('child_id', child.id)
-        .is('deleted_at', null)
-        .order('record_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      child.status === 'born' && child.birth_date
-        ? supabase
-            .from('vaccines')
-            .select('id, name')
-            .is('deleted_at', null)
-        : Promise.resolve({ data: null }),
-      child.status === 'born' && child.birth_date
-        ? supabase
-            .from('vaccine_schedules')
-            .select('id, vaccine_id, start_month, end_month, dose_label')
-            .is('deleted_at', null)
-            .order('start_month')
-        : Promise.resolve({ data: null }),
-      child.status === 'born' && child.birth_date
-        ? supabase
-            .from('child_vaccination_records')
-            .select('vaccine_schedule_id, status')
-            .eq('user_id', user.id)
-            .eq('child_id', child.id)
-            .is('deleted_at', null)
-        : Promise.resolve({ data: null }),
-    ])
+    const [growthResult, feedingResult, vaccineResult, scheduleResult, recordResult] =
+      await Promise.all([
+        supabase
+          .from('child_growth_records')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .order('record_date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('child_feeding_records')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        child.status === 'born' && child.birth_date
+          ? supabase
+              .from('vaccines')
+              .select('id, name')
+              .is('deleted_at', null)
+          : Promise.resolve({ data: null }),
+        child.status === 'born' && child.birth_date
+          ? supabase
+              .from('vaccine_schedules')
+              .select('id, vaccine_id, start_month, end_month, dose_label')
+              .is('deleted_at', null)
+              .order('start_month')
+          : Promise.resolve({ data: null }),
+        child.status === 'born' && child.birth_date
+          ? supabase
+              .from('child_vaccination_records')
+              .select('vaccine_schedule_id, status')
+              .eq('user_id', user.id)
+              .eq('child_id', child.id)
+              .is('deleted_at', null)
+          : Promise.resolve({ data: null }),
+      ])
 
     latestGrowthRecord = growthResult.data as ChildGrowthRecord | null
+    latestFeedingRecord = feedingResult.data as Tables<'child_feeding_records'> | null
 
     if (
       child.status === 'born' &&
@@ -243,6 +273,44 @@ export default async function DashboardPage() {
             ) : (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 성장 기록이 없어요.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">최근 수유/식사</h3>
+              <Link href="/feeding" className="text-xs font-medium text-orange-600">
+                기록하기
+              </Link>
+            </div>
+
+            {latestFeedingRecord ? (
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {FEEDING_TYPE_LABEL[latestFeedingRecord.feeding_type] ??
+                      latestFeedingRecord.feeding_type}
+                  </p>
+                  {latestFeedingRecord.food_name && (
+                    <p className="mt-0.5 text-xs text-slate-500">{latestFeedingRecord.food_name}</p>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {formatDateTime(latestFeedingRecord.recorded_at)}
+                  </p>
+                </div>
+                {latestFeedingRecord.amount !== null && (
+                  <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">
+                    {latestFeedingRecord.amount}
+                    {latestFeedingRecord.unit
+                      ? (UNIT_LABEL[latestFeedingRecord.unit] ?? latestFeedingRecord.unit)
+                      : ''}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+                <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
               </div>
             )}
           </Card>

@@ -56,6 +56,24 @@ export function toISODateString(date: Date = new Date()): string {
   return date.toISOString().split('T')[0]
 }
 
+export function toLocalDateTimeString(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+export function formatDateTime(isoString: string): string {
+  const date = new Date(isoString)
+  return date.toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 function addMonthsToDate(date: Date, months: number): Date {
   const result = new Date(date)
   const originalDay = result.getDate()
