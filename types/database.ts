@@ -462,6 +462,7 @@ export interface Database {
           title: string
           content: string
           image_url: string | null
+          author_nickname: string | null
           view_count: number
           like_count: number
           comment_count: number
@@ -478,6 +479,7 @@ export interface Database {
           title: string
           content: string
           image_url?: string | null
+          author_nickname?: string | null
           view_count?: number
           like_count?: number
           comment_count?: number
@@ -504,6 +506,7 @@ export interface Database {
           post_id: string
           parent_id: string | null
           content: string
+          author_nickname: string | null
           status: 'active' | 'hidden' | 'reported' | 'deleted'
           created_at: string
           updated_at: string
@@ -515,6 +518,7 @@ export interface Database {
           post_id: string
           parent_id?: string | null
           content: string
+          author_nickname?: string | null
           status?: 'active' | 'hidden' | 'reported' | 'deleted'
           created_at?: string
           updated_at?: string

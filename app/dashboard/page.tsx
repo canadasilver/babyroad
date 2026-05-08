@@ -74,6 +74,7 @@ export default async function DashboardPage() {
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
   let latestSleepRecord: Tables<'child_sleep_records'> | null = null
   let latestHealthRecord: Tables<'child_health_records'> | null = null
+  let latestCommunityPosts: Tables<'community_posts'>[] = []
   let nextVaccination: {
     name: string
     doseLabel: string
@@ -148,6 +149,15 @@ export default async function DashboardPage() {
     latestFeedingRecord = feedingResult.data as Tables<'child_feeding_records'> | null
     latestSleepRecord = sleepResult.data as Tables<'child_sleep_records'> | null
     latestHealthRecord = healthResult.data as Tables<'child_health_records'> | null
+
+    const { data: communityData } = await supabase
+      .from('community_posts')
+      .select('id, category, title, author_nickname, created_at, comment_count, like_count')
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(3)
+    latestCommunityPosts = (communityData ?? []) as Tables<'community_posts'>[]
 
     if (
       child.status === 'born' &&
@@ -450,6 +460,43 @@ export default async function DashboardPage() {
             ) : (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">최신 커뮤니티</h3>
+              <Link href="/community" className="text-xs font-medium text-orange-600">
+                더 보기
+              </Link>
+            </div>
+
+            {latestCommunityPosts.length > 0 ? (
+              <div className="space-y-2">
+                {latestCommunityPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/community/${post.id}`}
+                    className="block rounded-xl bg-slate-50 px-3 py-2.5 hover:bg-slate-100"
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="shrink-0 rounded-full bg-orange-50 px-2 py-0.5 text-xs text-orange-700">
+                        {post.category}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-slate-900 line-clamp-1">
+                      {post.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      {post.author_nickname ?? '익명'} · 💬 {post.comment_count}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+                <p className="text-sm text-slate-500">아직 게시글이 없어요.</p>
               </div>
             )}
           </Card>
