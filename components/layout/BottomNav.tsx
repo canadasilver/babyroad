@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/dashboard', label: '홈', icon: '🏠' },
   { href: '/growth', label: '성장', icon: '📏' },
-  { href: '/vaccination', label: '예방접종', icon: '💉' },
+  { href: '/vaccinations', label: '예방접종', icon: '💉' },
   { href: '/community', label: '커뮤니티', icon: '💬' },
   { href: '/mypage', label: '마이', icon: '👤' },
 ]

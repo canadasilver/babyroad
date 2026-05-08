@@ -17,8 +17,9 @@
 2. Vercel 프로젝트 생성 및 GitHub 연결
 3. 환경변수 등록
 4. 빌드 설정 확인 후 배포 실행
-5. Supabase Redirect URL 등록
-6. 운영 URL 테스트
+5. Google Authorized JavaScript origins 등록
+6. redirect OAuth 제공자를 사용하는 경우 Supabase Redirect URL 등록
+7. 운영 URL 테스트
 ```
 
 ## Vercel 환경변수
@@ -45,6 +46,7 @@ NAVER_CLIENT_SECRET=
 ```
 
 로컬 개발은 `.env.local` 사용 (Git 업로드 금지, `.env.local.example`에 키 이름만 작성)
+Vercel Environment Variables의 Value에는 실제 값만 입력한다. `KEY=value` 형식, 줄바꿈, 중복 값은 넣지 않는다.
 
 ## NEXT_PUBLIC_APP_URL 기준
 
@@ -54,9 +56,29 @@ Vercel 배포:   https://프로젝트명.vercel.app
 커스텀 도메인: https://도메인
 ```
 
+## Google 로그인 도메인 설정
+
+Google 기본 로그인은 Google Identity Services + Supabase `signInWithIdToken` 방식을 사용한다.
+
+Google Cloud Console → OAuth Client → Authorized JavaScript origins:
+
+```
+http://localhost:3000
+https://프로젝트명.vercel.app
+https://도메인
+```
+
+Google Cloud Console → OAuth Client → Authorized redirect URIs:
+
+```
+https://<supabase-project-ref>.supabase.co/auth/v1/callback
+```
+
+redirect OAuth를 함께 사용하는 경우에 등록한다.
+
 ## Supabase Redirect URL
 
-Supabase Dashboard → Authentication → URL Configuration에 등록:
+Kakao / Naver 등 redirect OAuth 제공자를 사용하는 경우 Supabase Dashboard → Authentication → URL Configuration에 등록:
 
 ```
 http://localhost:3000/auth/callback               ← 로컬
@@ -69,10 +91,12 @@ https://도메인/auth/callback                       ← 커스텀 도메인
 ```
 [ ] npm run build 성공 (TypeScript 오류 없음)
 [ ] 환경변수 누락 없음
+[ ] 환경변수 Value에 키 이름, 줄바꿈, 중복 값이 섞이지 않음
 [ ] SUPABASE_SERVICE_ROLE_KEY 클라이언트 노출 없음
 [ ] Supabase 연결 정상
 [ ] RLS 정책 적용 완료
-[ ] OAuth Redirect URL 등록 완료
+[ ] Google Authorized JavaScript origins 등록 완료
+[ ] redirect OAuth 사용 시 OAuth Redirect URL 등록 완료
 [ ] 로그인 페이지 정상
 [ ] 보호 페이지 redirect 정상
 [ ] 모바일 UI 확인
@@ -105,11 +129,15 @@ Server Component에서 `window`를 사용한 경우. → Client Component로 분
 **Supabase auth redirect error**
 OAuth Redirect URL 불일치. → Supabase Auth Redirect URL과 Vercel 운영 URL을 확인한다.
 
+**Google ID Token login provider error**
+Google ID Token 검증 실패. → `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, Authorized JavaScript origins, nonce SHA-256 hex 처리, Supabase anon key 값을 확인한다.
+
 ## 운영 테스트 항목
 
 ```
 [ ] 랜딩 / 로그인 페이지 접속
-[ ] 소셜 로그인 및 /auth/callback 작동
+[ ] Google ID Token 로그인 작동
+[ ] redirect OAuth 사용 시 /auth/callback 작동
 [ ] 온보딩 → 대시보드 이동
 [ ] 아이 등록 / 성장 기록 저장
 [ ] Supabase 데이터 저장 확인
@@ -132,7 +160,8 @@ OAuth Redirect URL 불일치. → Supabase Auth Redirect URL과 Vercel 운영 UR
 - `npm run build`가 성공하는가
 - Vercel 배포가 성공하는가
 - 운영 URL 접속 및 Supabase 연결이 정상인가
-- OAuth 로그인 및 Redirect URL이 정상인가
+- Google ID Token 로그인 및 Authorized JavaScript origins가 정상인가
+- redirect OAuth 사용 시 Redirect URL이 정상인가
 - 모바일 화면이 정상인가
 - 환경변수가 안전하게 관리되는가
 
@@ -142,5 +171,6 @@ OAuth Redirect URL 불일치. → Supabase Auth Redirect URL과 Vercel 운영 UR
 - `SUPABASE_SERVICE_ROLE_KEY` 클라이언트 노출
 - 빌드 오류 임시 무시
 - TypeScript 오류를 `any`로 무조건 덮기
-- OAuth Redirect URL 확인 없이 배포 완료 처리
+- Google Authorized JavaScript origins 확인 없이 배포 완료 처리
+- redirect OAuth 사용 시 OAuth Redirect URL 확인 없이 배포 완료 처리
 - RLS 없이 운영 배포

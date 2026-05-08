@@ -90,17 +90,19 @@
 
 소셜 로그인 기능은 아래 흐름을 검수한다.
 
-- Google OAuth 버튼이 정상 동작하는가
+- Google은 Google Identity Services + `signInWithIdToken` 방식으로 세션을 생성하는가
+- Google 버튼이 실제 클릭 가능한가
+- Google 버튼 iframe을 완전히 숨기지 않았는가 (`opacity-0` 등으로 클릭이 막히지 않는가)
+- Google ID Token nonce는 Supabase에는 원문, Google에는 SHA-256 hex hash로 전달되는가
 - Kakao/Naver 준비중 상태가 명확한가
-- redirectTo가 환경에 맞게 설정되는가
-- 로컬 redirect URL이 정상인가
-- 운영 redirect URL이 정상인가
-- Supabase Callback URL이 Google Cloud에 등록되어 있는가
+- Google Cloud OAuth Client의 Authorized JavaScript origins에 로컬/운영 origin이 등록되어 있는가
+- redirect OAuth 제공자를 사용하는 경우 redirectTo가 환경에 맞게 설정되는가
+- redirect OAuth 제공자를 사용하는 경우 Supabase Callback URL이 Google Cloud 또는 해당 Provider에 등록되어 있는가
 - 로그인 성공 후 profiles 조회가 정상인가
 - profiles가 없으면 onboarding으로 이동하는가
 - profiles가 있으면 dashboard로 이동하는가
 - OAuth 실패 원인이 안전한 error code로 표시되는가
-- token, code, secret이 로그에 출력되지 않는가
+- ID Token, token, code, nonce, secret이 로그에 출력되지 않는가
 
 ## 환경변수 보안 검수 기준
 
@@ -113,6 +115,7 @@
 - 실제 키값을 다른 파일로 복사하지 않는다.
 - `.env.local`은 Git에 포함되지 않아야 한다.
 - Vercel 환경변수 값은 출력하지 않는다.
+- Vercel 환경변수 Value에 `KEY=value` 형식, 줄바꿈, 중복 값이 섞이지 않았는지 확인한다.
 - `SUPABASE_SERVICE_ROLE_KEY`는 클라이언트 코드에서 사용하지 않는다.
 - OAuth Client Secret은 클라이언트 코드에서 사용하지 않는다.
 

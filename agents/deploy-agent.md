@@ -19,7 +19,7 @@
 - Supabase 마이그레이션 적용 (`supabase db push`)
 - `.env.local.example` 관리
 - 배포 전 빌드 검증
-- Supabase Auth Redirect URL 등록
+- Google Authorized JavaScript origins 및 필요한 Supabase Auth Redirect URL 등록
 - 운영 도메인 연결
 - 무료 플랜 한계 모니터링
 
@@ -47,6 +47,7 @@ NAVER_CLIENT_SECRET
 
 로컬 개발: `.env.local` 사용 (Git 업로드 금지, `.gitignore`에 포함)
 `.env.local.example`에는 키 이름만 작성하고 최신 상태 유지
+Vercel Environment Variables의 Value에는 실제 값만 입력한다. `NEXT_PUBLIC_SUPABASE_ANON_KEY=`처럼 키 이름을 함께 넣거나 줄바꿈/중복 값을 넣지 않는다.
 
 ## 배포 전 체크리스트
 
@@ -57,23 +58,39 @@ NAVER_CLIENT_SECRET
 [ ] Supabase 마이그레이션 적용 완료
 [ ] RLS 정책 적용 확인
 [ ] Vercel 환경변수 등록 완료
+[ ] Vercel 환경변수 Value에 키 이름, 줄바꿈, 중복 값이 섞이지 않음
 [ ] service role key 클라이언트 노출 없음
-[ ] Supabase Auth Redirect URL에 배포 도메인 추가
-[ ] 소셜 로그인 Provider에 배포 도메인 등록
+[ ] Google OAuth Client Authorized JavaScript origins에 로컬/운영 origin 등록
+[ ] redirect OAuth 제공자 사용 시 Supabase Auth Redirect URL 등록
+[ ] 소셜 로그인 Provider에 필요한 운영 도메인 등록
 [ ] 보호 페이지 접근 제한 확인
 [ ] 모바일 화면 확인
 ```
+
+## Google 로그인 설정
+
+Google 기본 로그인은 Google Identity Services + Supabase `signInWithIdToken` 방식을 사용한다.
+
+Google Cloud Console → OAuth Client → Authorized JavaScript origins:
+
+- http://localhost:3000
+- https://babyroad.vercel.app
+- 커스텀 도메인 사용 시 해당 origin 추가
+
+Google Cloud Console → OAuth Client → Authorized redirect URIs:
+
+- redirect OAuth를 함께 사용할 경우 Supabase Callback URL 등록
+- 예: https://pnmlaxsuromugjntrjjy.supabase.co/auth/v1/callback
 
 ## Supabase Auth 설정
 
 Supabase Dashboard → Authentication → URL Configuration:
 
-- **Site URL**: `https://your-domain.vercel.app`
+- **Site URL**: https://babyroad.vercel.app
 - **Redirect URLs**:
-  - `http://localhost:3000/auth/callback` (로컬)
-  - `https://your-domain.vercel.app/auth/callback` (운영)
-  - 커스텀 도메인 사용 시 해당 URL 추가
-- 각 소셜 Provider의 Redirect URI도 동일하게 업데이트
+  - Google ID Token 로그인만 사용할 때는 앱 `/auth/callback`이 필수는 아니다.
+  - Kakao / Naver 등 redirect OAuth 제공자를 사용하는 경우 앱 콜백 URL을 등록한다.
+  - Supabase Provider Callback URL은 외부 OAuth Client의 redirect URI에 등록한다.
 
 ## 마이그레이션 적용
 
@@ -102,7 +119,8 @@ supabase db push --linked
 배포 후 다음 항목을 직접 확인한다:
 
 - 소셜 로그인 정상 동작
-- OAuth 콜백 URL 정상 작동
+- Google ID Token 로그인 정상 동작
+- redirect OAuth 제공자 사용 시 OAuth 콜백 URL 정상 작동
 - 온보딩 이동 여부
 - 대시보드 접근 여부
 - Supabase 데이터 저장 여부
@@ -123,7 +141,7 @@ supabase db push --linked
 1. 현재 배포 상태 및 환경변수 확인
 2. `npm run build` 오류 확인 및 수정
 3. Supabase 마이그레이션 및 RLS 설정 확인
-4. Supabase Auth Redirect URL 설정 확인
+4. Google Authorized JavaScript origins 및 필요한 Supabase Auth Redirect URL 설정 확인
 5. Vercel 환경변수 등록 확인
 6. 배포 실행
 7. 운영 배포 후 확인 항목 점검
@@ -135,7 +153,8 @@ supabase db push --linked
 - 운영 URL에서 소셜 로그인 정상 작동하는가
 - Supabase 데이터 읽기/쓰기 정상 작동하는가
 - `SUPABASE_SERVICE_ROLE_KEY`가 Vercel 환경변수에만 존재 (노출 없음)
-- OAuth Redirect URL이 운영 도메인으로 등록되어 있는가
+- Google Authorized JavaScript origins가 운영 도메인으로 등록되어 있는가
+- redirect OAuth 제공자를 사용하는 경우 OAuth Redirect URL이 운영 도메인으로 등록되어 있는가
 
 ## 금지사항
 
@@ -143,6 +162,7 @@ supabase db push --linked
 - `SUPABASE_SERVICE_ROLE_KEY`를 `NEXT_PUBLIC_`로 등록
 - 마이그레이션 없이 Supabase 테이블을 수동으로 변경
 - RLS 검증 없이 프로덕션 배포
-- Supabase Auth Redirect URL 미등록 상태로 소셜 로그인 사용
+- Google Authorized JavaScript origins 미등록 상태로 Google 로그인 사용
+- redirect OAuth 제공자에서 Supabase Auth Redirect URL 미등록 상태로 소셜 로그인 사용
 - 빌드 오류를 `any`로 무조건 덮어서 해결
 - 배포 오류를 임시로 무시하고 완료 처리

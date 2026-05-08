@@ -47,6 +47,8 @@ lib/supabase/admin.ts       — service role 전용 (서버에서만 import)
 
 - 로그인 사용자 식별: `auth.users.id` 기준
 - 사용자 정보: `profiles` 테이블에 저장
+- Google 로그인은 Google Identity Services ID Token을 `supabase.auth.signInWithIdToken`으로 전달해 세션을 생성한다
+- Google ID Token 로그인에서 Supabase에는 원문 nonce를 전달하고, Google에는 SHA-256 hex hash nonce를 전달한다
 - `profiles` 없으면 → 온보딩으로 이동
 - `profiles` 있으면 → 대시보드로 이동
 - 로그아웃 시 세션 제거 후 로그인 페이지로 이동
@@ -127,6 +129,14 @@ duplicate key value violates unique constraint...
 // 권장
 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.
 ```
+
+## 환경변수 값 검수 규칙
+
+- `.env.local` 파일은 읽지 않는다.
+- 필요한 환경변수 이름은 `.env.local.example` 기준으로 확인한다.
+- Vercel 환경변수 Value에는 실제 값만 들어가야 한다.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=`처럼 키 이름을 Value에 포함하지 않는다.
+- 줄바꿈, 중복 값, 다른 키 이름이 Value에 섞이면 Supabase 클라이언트 인증이 실패할 수 있다.
 
 ## 완료 기준
 

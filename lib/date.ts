@@ -55,3 +55,43 @@ export function formatDateShort(dateString: string): string {
 export function toISODateString(date: Date = new Date()): string {
   return date.toISOString().split('T')[0]
 }
+
+function addMonthsToDate(date: Date, months: number): Date {
+  const result = new Date(date)
+  const originalDay = result.getDate()
+  result.setDate(1)
+  result.setMonth(result.getMonth() + months)
+  const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate()
+  result.setDate(Math.min(originalDay, lastDay))
+  return result
+}
+
+export function getVaccinationScheduledDate(birthDate: string, startMonth: number): string {
+  return addMonthsToDate(new Date(birthDate), startMonth).toISOString().split('T')[0]
+}
+
+export function getVaccinationEndDate(birthDate: string, endMonth: number): string {
+  return addMonthsToDate(new Date(birthDate), endMonth).toISOString().split('T')[0]
+}
+
+export function calculateVaccinationUiStatus(
+  birthDate: string,
+  startMonth: number,
+  endMonth: number,
+  isCompleted: boolean
+): 'scheduled' | 'available' | 'completed' | 'delayed' {
+  if (isCompleted) return 'completed'
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const birth = new Date(birthDate)
+  const startDate = addMonthsToDate(birth, startMonth)
+  startDate.setHours(0, 0, 0, 0)
+  const endDate = addMonthsToDate(birth, endMonth)
+  endDate.setHours(0, 0, 0, 0)
+
+  if (today < startDate) return 'scheduled'
+  if (today > endDate) return 'delayed'
+  return 'available'
+}

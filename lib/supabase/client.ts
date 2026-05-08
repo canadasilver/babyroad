@@ -17,7 +17,7 @@ function getSupabaseBrowserConfig() {
 export function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseBrowserConfig()
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createBrowserClient<Database, 'public', Database['public']>(supabaseUrl, supabaseAnonKey, {
     auth: {
       detectSessionInUrl: false,
     },

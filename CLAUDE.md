@@ -52,25 +52,23 @@ babyroad/
 상세 개발 규칙은 CLAUDE.md에 모두 넣지 않는다. 각 역할은 agents/, 반복 패턴은 skills/ 폴더에서 관리한다.
 
 **agents/**
+
 - `product-planner-agent.md`
 - `frontend-agent.md`
 - `database-agent.md`
 - `supabase-agent.md`
 - `auth-agent.md`
-- `community-agent.md`
 - `deploy-agent.md`
 - `qa-review-agent.md`
-- `security-agent.md`
 
 **skills/**
+
 - `nextjs-skill.md`
 - `supabase-skill.md`
-- `vercel-skill.md`
+- `vercel-deploy-skill.md`
 - `rls-policy-skill.md`
 - `oauth-login-skill.md`
-- `mobile-ui-skill.md`
 - `database-schema-skill.md`
-- `security-privacy-skill.md`
 
 ## 5. 개발 원칙
 
@@ -117,11 +115,13 @@ notifications
 
 ## 8. 인증 흐름
 
-1. 사용자 로그인 (Google / Kakao / Naver)
-2. Supabase Auth 세션 생성
-3. `profiles` 테이블에 프로필 존재 여부 확인
-4. 프로필 없음 → 온보딩으로 이동
-5. 프로필 있음 → 대시보드로 이동
+1. 사용자 로그인 (Google 우선, Kakao / Naver 확장 예정)
+2. Google은 Google Identity Services로 ID Token을 받은 뒤 `supabase.auth.signInWithIdToken`으로 Supabase Auth 세션 생성
+3. Google ID Token 로그인 시 nonce는 원문 nonce를 Supabase에 전달하고, Google에는 SHA-256 hex 형식의 nonce hash를 전달
+4. Kakao / Naver 등 redirect OAuth 제공자는 필요 시 `/auth/callback` 기반 서버 콜백으로 확장
+5. `profiles` 테이블에 프로필 존재 여부 확인
+6. 프로필 없음 → 온보딩으로 이동
+7. 프로필 있음 → 대시보드로 이동
 
 ## 9. UI/UX 기준
 
@@ -175,6 +175,10 @@ GOOGLE_CLIENT_SECRET=
 
 - `SUPABASE_SERVICE_ROLE_KEY`는 서버에서만 사용
 - 브라우저 코드에서는 `NEXT_PUBLIC_SUPABASE_ANON_KEY`만 사용
+- Vercel 환경변수 Value에는 값만 입력한다. `NEXT_PUBLIC_SUPABASE_ANON_KEY=`처럼 키 이름을 함께 넣거나 줄바꿈/중복 값을 넣지 않는다.
+- Google ID Token 로그인에 필요한 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`는 브라우저에서 사용 가능하다.
+- Google Cloud OAuth Client에는 `https://babyroad.vercel.app`, `http://localhost:3000`을 Authorized JavaScript origins에 등록한다.
+- redirect OAuth를 함께 사용하는 경우 Google Cloud Authorized redirect URIs에는 Supabase Callback URL (`https://<project-ref>.supabase.co/auth/v1/callback`)을 등록한다.
 
 ## 환경변수 보안 추가 규칙
 
@@ -184,6 +188,7 @@ GOOGLE_CLIENT_SECRET=
 - 실제 키값을 코드에 하드코딩하지 않는다.
 - 실제 키값을 다른 파일로 복사하지 않는다.
 - `SUPABASE_SERVICE_ROLE_KEY`, OAuth Client Secret, DB Password는 절대 클라이언트 코드에 사용하지 않는다.
+- Google 로그인 구현은 Client Secret 없이 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`와 Google Identity Services ID Token을 사용한다.
 
 ## 13. 작업 방식
 
@@ -222,3 +227,28 @@ GOOGLE_CLIENT_SECRET=
 ## 16. 최종 목표
 
 임신부터 7세까지 아이의 성장 여정을 관리하는 육아 플랫폼. 초기에는 Supabase + Vercel 무료 인프라 기반 MVP로 시작하고, 이후 모바일 앱, 관리자 시스템, 푸시 알림, AI 요약, 프리미엄 리포트 기능으로 확장한다.
+
+
+
+## 17. 마일스톤 배포 규칙
+
+마일스톤 완료 기준과 배포 여부 판단은 `agents/milestones.md`를 따른다.
+
+베이비로드 프로젝트는 기본적으로 로컬 개발을 우선한다.
+
+일반 기능 개발 중에는 Vercel Production 배포를 하지 않는다.
+
+단, 현재 작업이 `agents/milestones.md`의 마일스톤 완료 기준을 충족하는 경우에는 `agents/qa-review-agent.md` 기준으로 QA 검수 후 GitHub push와 Vercel Production 배포까지 진행한다.
+
+마일스톤 완료 기준을 충족하지 못하면 Vercel 배포는 하지 않고 로컬 빌드 확인까지만 진행한다.
+
+### 마일스톤 작업 원칙
+
+- 일반 작업 완료 시에는 `npm run build`와 `git status`까지만 확인한다.
+- 마일스톤 완료 시에는 QA 검수 후 commit, push, Vercel Production 배포까지 진행한다.
+- 배포 여부는 `agents/milestones.md` 기준으로 판단한다.
+- QA 검수는 `agents/qa-review-agent.md` 기준으로 진행한다.
+- 배포 절차는 `agents/deploy-agent.md` 기준으로 진행한다.
+- `.env.local` 파일은 절대 읽거나 덮어쓰지 않는다.
+- 실제 환경변수 값은 출력하지 않는다.
+- 빌드 실패 상태에서는 배포하지 않는다.
