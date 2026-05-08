@@ -195,7 +195,7 @@ export default function SocialLoginButtons() {
           text: 'continue_with',
           shape: 'rectangular',
           logo_alignment: 'left',
-          width: 384,
+          width: Math.min(buttonRef.current.clientWidth || 384, 384),
           locale: 'ko',
         })
 
@@ -217,35 +217,44 @@ export default function SocialLoginButtons() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative min-h-[44px] overflow-hidden rounded-xl border border-slate-300 bg-white">
-        {!isGoogleReady && !googleSetupError && (
-          <div className="flex h-[44px] w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-500">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-            Google 로그인 준비 중...
-          </div>
-        )}
-
-        {googleSetupError && (
+      <div className="relative min-h-[48px] overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm transition-colors hover:bg-slate-50">
+        {googleSetupError ? (
           <button
             type="button"
             onClick={() => redirectToLoginError('auth_failed', 'google_client_mismatch')}
-            className="flex h-[44px] w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
+            className="flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
           >
             <GoogleIcon />
             Google 설정 확인 필요
           </button>
-        )}
+        ) : (
+          <>
+            <div
+              ref={buttonRef}
+              className="absolute inset-0 z-10 flex h-12 w-full items-center justify-center opacity-0"
+            />
 
-        <div
-          ref={buttonRef}
-          className={isGoogleReady ? 'flex h-[44px] w-full items-center justify-center' : 'hidden'}
-        />
+            <div className="pointer-events-none relative z-20 flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700">
+              {isGoogleReady ? (
+                <>
+                  <GoogleIcon />
+                  Google로 계속하기
+                </>
+              ) : (
+                <>
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                  Google 로그인 준비 중...
+                </>
+              )}
+            </div>
 
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center gap-3 bg-white/90 px-4 py-3 text-sm font-medium text-slate-700">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-            Google 세션 생성 중...
-          </div>
+            {isLoading && (
+              <div className="absolute inset-0 z-30 flex items-center justify-center gap-3 bg-white/95 px-4 py-3 text-sm font-medium text-slate-700">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                Google 세션 생성 중...
+              </div>
+            )}
+          </>
         )}
       </div>
 
