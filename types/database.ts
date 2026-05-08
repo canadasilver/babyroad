@@ -43,6 +43,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       children: {
         Row: {
@@ -99,6 +100,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       child_growth_records: {
         Row: {
@@ -136,6 +138,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       child_feeding_records: {
         Row: {
@@ -179,6 +182,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       child_sleep_records: {
         Row: {
@@ -216,6 +220,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       child_health_records: {
         Row: {
@@ -256,6 +261,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       vaccines: {
         Row: {
@@ -283,6 +289,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       vaccine_schedules: {
         Row: {
@@ -316,6 +323,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       child_vaccination_records: {
         Row: {
@@ -357,6 +365,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       development_contents: {
         Row: {
@@ -408,6 +417,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       development_checklists: {
         Row: {
@@ -441,6 +451,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       community_posts: {
         Row: {
@@ -484,6 +495,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       community_comments: {
         Row: {
@@ -514,6 +526,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       community_likes: {
         Row: {
@@ -533,6 +546,7 @@ export interface Database {
         Update: {
           deleted_at?: string | null
         }
+        Relationships: []
       }
       community_reports: {
         Row: {
@@ -564,6 +578,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -606,6 +621,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
