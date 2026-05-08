@@ -1,39 +1,259 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
-export default function SocialLoginButtons() {
-  const [loading, setLoading] = useState(false)
+type GoogleCredentialResponse = {
+  credential?: string
+  select_by?: string
+}
 
-  const handleGoogleOAuthRedirect = async () => {
-    if (loading) return
-    setLoading(true)
+type GoogleIdConfiguration = {
+  client_id: string
+  callback: (response: GoogleCredentialResponse) => void
+  nonce?: string
+  auto_select?: boolean
+  cancel_on_tap_outside?: boolean
+  ux_mode?: 'popup' | 'redirect'
+  use_fedcm_for_prompt?: boolean
+}
 
-    try {
-      window.location.assign('/auth/google')
-    } catch {
-      window.location.href = `${window.location.origin}/login?error=auth_failed`
-      setLoading(false)
+type GoogleButtonConfiguration = {
+  type?: 'standard' | 'icon'
+  theme?: 'outline' | 'filled_blue' | 'filled_black'
+  size?: 'large' | 'medium' | 'small'
+  text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin'
+  shape?: 'rectangular' | 'pill' | 'circle' | 'square'
+  logo_alignment?: 'left' | 'center'
+  width?: number
+  locale?: string
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: GoogleIdConfiguration) => void
+          renderButton: (parent: HTMLElement, options: GoogleButtonConfiguration) => void
+          cancel: () => void
+        }
+      }
     }
   }
+}
+
+const GOOGLE_SCRIPT_ID = 'google-identity-services'
+const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client'
+
+function redirectToLoginError(error: string, reason?: string) {
+  const loginUrl = new URL('/login', window.location.origin)
+  loginUrl.searchParams.set('error', error)
+
+  if (reason) {
+    loginUrl.searchParams.set('reason', reason)
+  }
+
+  window.location.replace(loginUrl.toString())
+}
+
+function loadGoogleIdentityScript() {
+  return new Promise<void>((resolve, reject) => {
+    if (window.google?.accounts?.id) {
+      resolve()
+      return
+    }
+
+    const existingScript = document.getElementById(GOOGLE_SCRIPT_ID) as HTMLScriptElement | null
+
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(), { once: true })
+      existingScript.addEventListener('error', () => reject(new Error('google_script_failed')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = GOOGLE_SCRIPT_ID
+    script.src = GOOGLE_SCRIPT_SRC
+    script.async = true
+    script.defer = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('google_script_failed'))
+    document.head.appendChild(script)
+  })
+}
+
+function createRandomNonce() {
+  const randomValues = new Uint8Array(32)
+  window.crypto.getRandomValues(randomValues)
+
+  return btoa(String.fromCharCode(...randomValues))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+async function sha256Base64Url(value: string) {
+  const encoder = new TextEncoder()
+  const digest = await window.crypto.subtle.digest('SHA-256', encoder.encode(value))
+  const bytes = Array.from(new Uint8Array(digest))
+  const binary = bytes.map((byte) => String.fromCharCode(byte)).join('')
+
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+export default function SocialLoginButtons() {
+  const buttonRef = useRef<HTMLDivElement>(null)
+  const nonceRef = useRef<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleReady, setIsGoogleReady] = useState(false)
+  const [googleSetupError, setGoogleSetupError] = useState(false)
+
+  const handleGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
+    if (isLoading) return
+
+    if (!response.credential) {
+      redirectToLoginError('id_token_failed', 'google_id_token_missing')
+      return
+    }
+
+    setIsLoading(true)
+
+    const supabase = createClient()
+    const { error: signInError } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential,
+      nonce: nonceRef.current ?? undefined,
+    })
+
+    if (signInError) {
+      redirectToLoginError('id_token_failed', 'provider_error')
+      return
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      redirectToLoginError('user_failed')
+      return
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+      .maybeSingle()
+
+    if (profileError) {
+      redirectToLoginError('profile_query_failed')
+      return
+    }
+
+    window.location.replace(profile ? '/dashboard' : '/onboarding')
+  }, [isLoading])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function setupGoogleButton() {
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+      if (!googleClientId) {
+        setGoogleSetupError(true)
+        return
+      }
+
+      try {
+        const nonce = createRandomNonce()
+        nonceRef.current = nonce
+        const hashedNonce = await sha256Base64Url(nonce)
+
+        await loadGoogleIdentityScript()
+
+        if (!isMounted || !buttonRef.current || !window.google?.accounts?.id) {
+          return
+        }
+
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleCredential,
+          nonce: hashedNonce,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          ux_mode: 'popup',
+          use_fedcm_for_prompt: true,
+        })
+
+        buttonRef.current.innerHTML = ''
+        window.google.accounts.id.renderButton(buttonRef.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: 384,
+          locale: 'ko',
+        })
+
+        setIsGoogleReady(true)
+      } catch {
+        if (isMounted) {
+          setGoogleSetupError(true)
+        }
+      }
+    }
+
+    void setupGoogleButton()
+
+    return () => {
+      isMounted = false
+      window.google?.accounts?.id.cancel()
+    }
+  }, [handleGoogleCredential])
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={handleGoogleOAuthRedirect}
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading ? (
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-        ) : (
-          <GoogleIcon />
+      <div className="relative min-h-[44px] overflow-hidden rounded-xl border border-slate-300 bg-white">
+        {!isGoogleReady && !googleSetupError && (
+          <div className="flex h-[44px] w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-500">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+            Google 로그인 준비 중...
+          </div>
         )}
-        {loading ? '로그인 중...' : 'Google로 계속하기'}
-      </button>
 
-      {/* Kakao — 준비중 */}
+        {googleSetupError && (
+          <button
+            type="button"
+            onClick={() => redirectToLoginError('auth_failed', 'google_client_mismatch')}
+            className="flex h-[44px] w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
+          >
+            <GoogleIcon />
+            Google 설정 확인 필요
+          </button>
+        )}
+
+        <div
+          ref={buttonRef}
+          className={isGoogleReady ? 'flex h-[44px] w-full items-center justify-center' : 'hidden'}
+        />
+
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center gap-3 bg-white/90 px-4 py-3 text-sm font-medium text-slate-700">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+            Google 세션 생성 중...
+          </div>
+        )}
+      </div>
+
+      {/* Kakao는 MVP 확장 단계에서 연결합니다. */}
       <div className="relative">
         <button
           type="button"
@@ -46,7 +266,7 @@ export default function SocialLoginButtons() {
         <ComingSoonBadge />
       </div>
 
-      {/* Naver — 준비중 */}
+      {/* Naver는 MVP 확장 단계에서 연결합니다. */}
       <div className="relative">
         <button
           type="button"
