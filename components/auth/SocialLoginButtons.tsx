@@ -93,16 +93,12 @@ function createRandomNonce() {
     .replace(/=+$/, '')
 }
 
-async function sha256Base64Url(value: string) {
+async function sha256Hex(value: string) {
   const encoder = new TextEncoder()
   const digest = await window.crypto.subtle.digest('SHA-256', encoder.encode(value))
   const bytes = Array.from(new Uint8Array(digest))
-  const binary = bytes.map((byte) => String.fromCharCode(byte)).join('')
 
-  return btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
+  return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 export default function SocialLoginButtons() {
@@ -173,7 +169,7 @@ export default function SocialLoginButtons() {
       try {
         const nonce = createRandomNonce()
         nonceRef.current = nonce
-        const hashedNonce = await sha256Base64Url(nonce)
+        const hashedNonce = await sha256Hex(nonce)
 
         await loadGoogleIdentityScript()
 
