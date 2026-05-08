@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/date'
 import type { VaccinationScheduleItem } from '@/types/child'
 import VaccinationCompleteButton from './VaccinationCompleteButton'
+import VaccinationUndoButton from './VaccinationUndoButton'
 
 const STATUS_CONFIG = {
   completed: { label: '완료', className: 'text-green-700 bg-green-50' },
@@ -123,6 +124,9 @@ function VaccinationScheduleRow({
               scheduleId={item.scheduleId}
               scheduledDate={item.scheduledDate}
             />
+          )}
+          {item.uiStatus === 'completed' && item.recordId && (
+            <VaccinationUndoButton recordId={item.recordId} userId={userId} />
           )}
         </div>
       </div>
