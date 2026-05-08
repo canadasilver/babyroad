@@ -29,6 +29,12 @@ type GoogleButtonConfiguration = {
   locale?: string
 }
 
+type GoogleSetupErrorReason = 'missing_client_id' | 'google_script_failed'
+
+type SocialLoginButtonsProps = {
+  googleClientId: string
+}
+
 declare global {
   interface Window {
     google?: {
@@ -101,12 +107,13 @@ async function sha256Hex(value: string) {
   return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
-export default function SocialLoginButtons() {
+export default function SocialLoginButtons({ googleClientId }: SocialLoginButtonsProps) {
   const buttonRef = useRef<HTMLDivElement>(null)
   const nonceRef = useRef<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleReady, setIsGoogleReady] = useState(false)
-  const [googleSetupError, setGoogleSetupError] = useState(false)
+  const [googleSetupError, setGoogleSetupError] = useState<GoogleSetupErrorReason | null>(null)
+  const [setupRetryCount, setSetupRetryCount] = useState(0)
 
   const handleGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
     if (isLoading) return
@@ -159,14 +166,17 @@ export default function SocialLoginButtons() {
     let isMounted = true
 
     async function setupGoogleButton() {
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      const normalizedGoogleClientId = googleClientId.trim()
 
-      if (!googleClientId) {
-        setGoogleSetupError(true)
+      if (!normalizedGoogleClientId) {
+        setGoogleSetupError('missing_client_id')
         return
       }
 
       try {
+        setGoogleSetupError(null)
+        setIsGoogleReady(false)
+
         const nonce = createRandomNonce()
         nonceRef.current = nonce
         const hashedNonce = await sha256Hex(nonce)
@@ -178,7 +188,7 @@ export default function SocialLoginButtons() {
         }
 
         window.google.accounts.id.initialize({
-          client_id: googleClientId,
+          client_id: normalizedGoogleClientId,
           callback: handleGoogleCredential,
           nonce: hashedNonce,
           auto_select: false,
@@ -202,7 +212,7 @@ export default function SocialLoginButtons() {
         setIsGoogleReady(true)
       } catch {
         if (isMounted) {
-          setGoogleSetupError(true)
+          setGoogleSetupError('google_script_failed')
         }
       }
     }
@@ -213,7 +223,16 @@ export default function SocialLoginButtons() {
       isMounted = false
       window.google?.accounts?.id.cancel()
     }
-  }, [handleGoogleCredential])
+  }, [googleClientId, handleGoogleCredential, setupRetryCount])
+
+  function handleGoogleSetupRetry() {
+    if (googleSetupError === 'missing_client_id') {
+      redirectToLoginError('auth_failed', 'google_client_mismatch')
+      return
+    }
+
+    setSetupRetryCount((count) => count + 1)
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -221,11 +240,11 @@ export default function SocialLoginButtons() {
         {googleSetupError ? (
           <button
             type="button"
-            onClick={() => redirectToLoginError('auth_failed', 'google_client_mismatch')}
+            onClick={handleGoogleSetupRetry}
             className="flex h-12 w-full items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-slate-700"
           >
             <GoogleIcon />
-            Google 설정 확인 필요
+            {googleSetupError === 'missing_client_id' ? 'Google 설정 확인 필요' : 'Google 로그인 다시 시도'}
           </button>
         ) : (
           <>

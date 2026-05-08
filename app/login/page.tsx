@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: '로그인',
 }
 
+export const dynamic = 'force-dynamic'
+
 const ERROR_MESSAGES: Record<string, string> = {
   missing_code:          'Google 인증이 완료되지 않았습니다. 다시 시도해 주세요.',
   oauth_provider_error:  '로그인이 취소되었거나 Google 인증에 실패했습니다. 다시 시도해 주세요.',
@@ -52,6 +54,7 @@ export default async function LoginPage({
   searchParams: SearchParams
 }) {
   const { error, reason } = await searchParams
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ?? ''
   const errorMessage = error ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_failed) : null
   const safeReason = reason && SAFE_REASONS.has(reason) ? reason : null
 
@@ -104,7 +107,7 @@ export default async function LoginPage({
           <h2 className="mb-5 text-center text-sm font-semibold text-slate-700">
             소셜 계정으로 시작하기
           </h2>
-          <SocialLoginButtons />
+          <SocialLoginButtons googleClientId={googleClientId} />
         </section>
 
         {/* 의료 정보 안내 */}
