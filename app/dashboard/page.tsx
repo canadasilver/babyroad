@@ -73,6 +73,7 @@ export default async function DashboardPage() {
   let latestGrowthRecord: ChildGrowthRecord | null = null
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
   let latestSleepRecord: Tables<'child_sleep_records'> | null = null
+  let latestHealthRecord: Tables<'child_health_records'> | null = null
   let nextVaccination: {
     name: string
     doseLabel: string
@@ -81,7 +82,7 @@ export default async function DashboardPage() {
   } | null = null
 
   if (child) {
-    const [growthResult, feedingResult, sleepResult, vaccineResult, scheduleResult, recordResult] =
+    const [growthResult, feedingResult, sleepResult, healthResult, vaccineResult, scheduleResult, recordResult] =
       await Promise.all([
         supabase
           .from('child_growth_records')
@@ -111,6 +112,15 @@ export default async function DashboardPage() {
           .order('sleep_start', { ascending: false })
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from('child_health_records')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
         child.status === 'born' && child.birth_date
           ? supabase
               .from('vaccines')
@@ -137,6 +147,7 @@ export default async function DashboardPage() {
     latestGrowthRecord = growthResult.data as ChildGrowthRecord | null
     latestFeedingRecord = feedingResult.data as Tables<'child_feeding_records'> | null
     latestSleepRecord = sleepResult.data as Tables<'child_sleep_records'> | null
+    latestHealthRecord = healthResult.data as Tables<'child_health_records'> | null
 
     if (
       child.status === 'born' &&
@@ -361,6 +372,50 @@ export default async function DashboardPage() {
                     {formatDateTime(latestSleepRecord.sleep_start)}
                   </p>
                 </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+                <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">최근 건강</h3>
+              <Link href="/health" className="text-xs font-medium text-orange-600">
+                기록하기
+              </Link>
+            </div>
+
+            {latestHealthRecord ? (
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  {latestHealthRecord.symptoms && (
+                    <p className="text-sm font-semibold text-slate-900">
+                      {latestHealthRecord.symptoms}
+                    </p>
+                  )}
+                  {latestHealthRecord.hospital_name && (
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      병원: {latestHealthRecord.hospital_name}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {formatDateTime(latestHealthRecord.recorded_at)}
+                  </p>
+                </div>
+                {latestHealthRecord.temperature !== null && (
+                  <span
+                    className={
+                      latestHealthRecord.temperature >= 37.5
+                        ? 'shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700'
+                        : 'shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700'
+                    }
+                  >
+                    {latestHealthRecord.temperature}℃
+                  </span>
+                )}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
