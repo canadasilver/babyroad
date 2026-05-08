@@ -78,7 +78,7 @@ export default async function DashboardPage() {
     name: string
     doseLabel: string
     scheduledDate: string
-    uiStatus: 'available' | 'scheduled'
+    uiStatus: 'available' | 'scheduled' | 'delayed'
   } | null = null
 
   if (child) {
@@ -193,6 +193,30 @@ export default async function DashboardPage() {
           break
         }
       }
+
+      // 접종 가능·예정이 없으면 지연(delayed) 미완료 접종을 폴백으로 표시
+      if (!nextVaccination) {
+        for (const schedule of schedules) {
+          if (completedIds.has(schedule.id)) continue
+
+          const uiStatus = calculateVaccinationUiStatus(
+            child.birth_date,
+            schedule.start_month,
+            schedule.end_month,
+            false
+          )
+
+          if (uiStatus === 'delayed') {
+            nextVaccination = {
+              name: vaccineMap.get(schedule.vaccine_id) ?? '',
+              doseLabel: schedule.dose_label,
+              scheduledDate: getVaccinationScheduledDate(child.birth_date, schedule.start_month),
+              uiStatus,
+            }
+            break
+          }
+        }
+      }
     }
   }
 
@@ -249,10 +273,16 @@ export default async function DashboardPage() {
                   className={
                     nextVaccination.uiStatus === 'available'
                       ? 'shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700'
-                      : 'shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700'
+                      : nextVaccination.uiStatus === 'delayed'
+                        ? 'shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700'
+                        : 'shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700'
                   }
                 >
-                  {nextVaccination.uiStatus === 'available' ? '접종 가능' : '예정'}
+                  {nextVaccination.uiStatus === 'available'
+                    ? '접종 가능'
+                    : nextVaccination.uiStatus === 'delayed'
+                      ? '접종 지연'
+                      : '예정'}
                 </span>
               </div>
             ) : child?.status === 'pregnancy' ? (
