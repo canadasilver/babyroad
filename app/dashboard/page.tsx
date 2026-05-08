@@ -11,6 +11,7 @@ import MedicalDisclaimer from '@/components/common/MedicalDisclaimer'
 import {
   formatDate,
   formatDateTime,
+  formatSleepDuration,
   calculateVaccinationUiStatus,
   getVaccinationScheduledDate,
 } from '@/lib/date'
@@ -33,6 +34,11 @@ const UNIT_LABEL: Record<string, string> = {
   count: '회',
   spoon: '숟가락',
   other: '',
+}
+
+const SLEEP_TYPE_LABEL: Record<string, string> = {
+  day_sleep: '낮잠',
+  night_sleep: '밤잠',
 }
 
 export const metadata: Metadata = {
@@ -66,6 +72,7 @@ export default async function DashboardPage() {
 
   let latestGrowthRecord: ChildGrowthRecord | null = null
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
+  let latestSleepRecord: Tables<'child_sleep_records'> | null = null
   let nextVaccination: {
     name: string
     doseLabel: string
@@ -74,7 +81,7 @@ export default async function DashboardPage() {
   } | null = null
 
   if (child) {
-    const [growthResult, feedingResult, vaccineResult, scheduleResult, recordResult] =
+    const [growthResult, feedingResult, sleepResult, vaccineResult, scheduleResult, recordResult] =
       await Promise.all([
         supabase
           .from('child_growth_records')
@@ -93,6 +100,15 @@ export default async function DashboardPage() {
           .eq('child_id', child.id)
           .is('deleted_at', null)
           .order('recorded_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('child_sleep_records')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .order('sleep_start', { ascending: false })
           .limit(1)
           .maybeSingle(),
         child.status === 'born' && child.birth_date
@@ -120,6 +136,7 @@ export default async function DashboardPage() {
 
     latestGrowthRecord = growthResult.data as ChildGrowthRecord | null
     latestFeedingRecord = feedingResult.data as Tables<'child_feeding_records'> | null
+    latestSleepRecord = sleepResult.data as Tables<'child_sleep_records'> | null
 
     if (
       child.status === 'born' &&
@@ -307,6 +324,43 @@ export default async function DashboardPage() {
                       : ''}
                   </span>
                 )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+                <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">최근 수면</h3>
+              <Link href="/sleep" className="text-xs font-medium text-orange-600">
+                기록하기
+              </Link>
+            </div>
+
+            {latestSleepRecord ? (
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        latestSleepRecord.sleep_type === 'night_sleep'
+                          ? 'rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700'
+                          : 'rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700'
+                      }
+                    >
+                      {SLEEP_TYPE_LABEL[latestSleepRecord.sleep_type] ?? latestSleepRecord.sleep_type}
+                    </span>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {formatSleepDuration(latestSleepRecord.sleep_start, latestSleepRecord.sleep_end)}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {formatDateTime(latestSleepRecord.sleep_start)}
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">

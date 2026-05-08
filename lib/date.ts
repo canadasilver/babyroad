@@ -61,6 +61,22 @@ export function toLocalDateTimeString(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+export function formatSleepDuration(startIso: string, endIso: string | null): string {
+  if (!endIso) return '진행 중'
+  const diffMs = new Date(endIso).getTime() - new Date(startIso).getTime()
+  if (diffMs <= 0) return '-'
+  return formatSleepMinutes(Math.floor(diffMs / 60000))
+}
+
+export function formatSleepMinutes(minutes: number): string {
+  if (minutes <= 0) return '0분'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours === 0) return `${mins}분`
+  if (mins === 0) return `${hours}시간`
+  return `${hours}시간 ${mins}분`
+}
+
 export function formatDateTime(isoString: string): string {
   const date = new Date(isoString)
   return date.toLocaleString('ko-KR', {
