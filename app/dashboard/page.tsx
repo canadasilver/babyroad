@@ -14,8 +14,10 @@ import {
   formatSleepDuration,
   calculateVaccinationUiStatus,
   getVaccinationScheduledDate,
+  getAgeInMonths,
 } from '@/lib/date'
 import { formatNumber } from '@/lib/utils'
+import { getDevelopmentGuide } from '@/lib/development-guides'
 import type { Child, ChildGrowthRecord } from '@/types/child'
 import type { Tables } from '@/types/database'
 
@@ -256,6 +258,48 @@ export default async function DashboardPage() {
               </Link>
             </Card>
           )}
+
+          {/* 이번 달 발달 가이드 카드 */}
+          {child && child.status === 'born' && (() => {
+            const ageInMonths = child.birth_date ? getAgeInMonths(child.birth_date) : null
+            if (ageInMonths === null) {
+              return (
+                <Card>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">이번 달 발달 가이드</h3>
+                      <p className="mt-1 text-xs text-[#9AA8BA]">아이 생년월일을 입력하면 맞춤 가이드를 볼 수 있어요.</p>
+                    </div>
+                    <Link href="/development" className="babyroad-link shrink-0">
+                      자세히 보기
+                    </Link>
+                  </div>
+                </Card>
+              )
+            }
+            const guide = getDevelopmentGuide(ageInMonths)
+            return (
+              <Card variant="hero" className="relative overflow-hidden border-white/70">
+                <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#CFE3D8]/50" />
+                <div className="relative">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-[#EAF6F2] px-2.5 py-0.5 text-xs font-semibold text-[#2F8F84]">
+                        {ageInMonths}개월
+                      </span>
+                      <h3 className="text-sm font-semibold text-[#25344A]">이번 달 발달 가이드</h3>
+                    </div>
+                    <Link href="/development" className="babyroad-link shrink-0">
+                      자세히 보기
+                    </Link>
+                  </div>
+                  <p className="text-xs font-semibold text-[#4FA99A]">{guide.ageRange}</p>
+                  <p className="mt-1 text-sm font-bold text-[#25344A]">{guide.title}</p>
+                  <p className="mt-1.5 text-xs leading-5 text-[#6B7A90] line-clamp-2">{guide.summary}</p>
+                </div>
+              </Card>
+            )
+          })()}
 
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-slate-900">오늘 할 일</h3>
