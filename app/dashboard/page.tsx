@@ -321,12 +321,48 @@ export default async function DashboardPage() {
             )
           )}
 
-          <Card>
-            <h3 className="mb-3 text-sm font-semibold text-slate-900">오늘 할 일</h3>
-            <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
-              <p className="text-sm text-slate-500">오늘 예정된 일정이 없어요.</p>
-            </div>
-          </Card>
+          {(() => {
+            const hasTodaySchedule = false // 향후 오늘 일정 기능 추가 시 교체
+            const activityItems: string[] = developmentGuide
+              ? ((developmentGuide.play_ideas as string[]).length > 0
+                  ? (developmentGuide.play_ideas as string[]).slice(0, 2)
+                  : (developmentGuide.parent_roles as string[]).slice(0, 2))
+              : []
+            const showActivities = !hasTodaySchedule && activityItems.length > 0
+
+            return (
+              <Card>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {showActivities ? '오늘 해볼 활동' : '오늘 할 일'}
+                  </h3>
+                  {showActivities && (
+                    <Link href="/development" className="babyroad-link shrink-0">
+                      발달 가이드 보기
+                    </Link>
+                  )}
+                </div>
+                {hasTodaySchedule ? (
+                  <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
+                    <p className="text-sm text-slate-500">오늘 예정된 일정이 없어요.</p>
+                  </div>
+                ) : showActivities ? (
+                  <ul className="space-y-2.5">
+                    {activityItems.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 rounded-2xl bg-[#EAF6F2]/60 px-3.5 py-3">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4FA99A]" />
+                        <span className="text-sm leading-6 text-[#3D4F65]">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
+                    <p className="text-sm text-slate-500">오늘 예정된 일정이 없어요.</p>
+                  </div>
+                )}
+              </Card>
+            )
+          })()}
 
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
