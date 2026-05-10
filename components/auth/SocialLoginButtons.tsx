@@ -91,6 +91,8 @@ function redirectToLoginError(error: string, reason?: string) {
   window.location.replace(loginUrl.toString())
 }
 
+const GOOGLE_SCRIPT_TIMEOUT_MS = 8000
+
 function loadGoogleIdentityScript() {
   return new Promise<void>((resolve, reject) => {
     if (window.google?.accounts?.id) {
@@ -98,11 +100,22 @@ function loadGoogleIdentityScript() {
       return
     }
 
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    const done = (fn: () => void) => {
+      if (timeoutId !== null) clearTimeout(timeoutId)
+      fn()
+    }
+
     const existingScript = document.getElementById(GOOGLE_SCRIPT_ID) as HTMLScriptElement | null
 
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(), { once: true })
-      existingScript.addEventListener('error', () => reject(new Error('google_script_failed')), { once: true })
+      if (existingScript.dataset.loaded === 'true') {
+        resolve()
+        return
+      }
+      existingScript.addEventListener('load', () => done(resolve), { once: true })
+      existingScript.addEventListener('error', () => done(() => reject(new Error('google_script_failed'))), { once: true })
+      timeoutId = setTimeout(() => reject(new Error('google_script_failed')), GOOGLE_SCRIPT_TIMEOUT_MS)
       return
     }
 
@@ -111,9 +124,10 @@ function loadGoogleIdentityScript() {
     script.src = GOOGLE_SCRIPT_SRC
     script.async = true
     script.defer = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('google_script_failed'))
+    script.onload = () => { script.dataset.loaded = 'true'; done(resolve) }
+    script.onerror = () => done(() => reject(new Error('google_script_failed')))
     document.head.appendChild(script)
+    timeoutId = setTimeout(() => reject(new Error('google_script_failed')), GOOGLE_SCRIPT_TIMEOUT_MS)
   })
 }
 
@@ -138,6 +152,7 @@ async function sha256Hex(value: string) {
 export default function SocialLoginButtons({ googleClientId }: SocialLoginButtonsProps) {
   const buttonRef = useRef<HTMLDivElement>(null)
   const nonceRef = useRef<string | null>(null)
+  const isLoadingRef = useRef(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleReady, setIsGoogleReady] = useState(false)
   const [googleSetupError, setGoogleSetupError] = useState<GoogleSetupErrorReason | null>(null)
@@ -145,13 +160,14 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
   const [blockedInAppBrowserName, setBlockedInAppBrowserName] = useState<string | null>(null)
 
   const handleGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
-    if (isLoading) return
+    if (isLoadingRef.current) return
 
     if (!response.credential) {
       redirectToLoginError('id_token_failed', 'google_id_token_missing')
       return
     }
 
+    isLoadingRef.current = true
     setIsLoading(true)
 
     const supabase = createClient()
@@ -189,7 +205,10 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
     }
 
     window.location.replace(profile ? '/dashboard' : '/onboarding')
-  }, [isLoading])
+  }, [])
+
+  const handleGoogleCredentialRef = useRef(handleGoogleCredential)
+  handleGoogleCredentialRef.current = handleGoogleCredential
 
   useEffect(() => {
     let isMounted = true
@@ -228,7 +247,7 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
 
         window.google.accounts.id.initialize({
           client_id: normalizedGoogleClientId,
-          callback: handleGoogleCredential,
+          callback: (response) => handleGoogleCredentialRef.current(response),
           nonce: hashedNonce,
           auto_select: false,
           cancel_on_tap_outside: true,
@@ -262,7 +281,7 @@ export default function SocialLoginButtons({ googleClientId }: SocialLoginButton
       isMounted = false
       window.google?.accounts?.id.cancel()
     }
-  }, [googleClientId, handleGoogleCredential, setupRetryCount])
+  }, [googleClientId, setupRetryCount])
 
   function handleGoogleSetupRetry() {
     if (googleSetupError === 'missing_client_id') {

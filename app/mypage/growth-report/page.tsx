@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   title: '우리 아이 성장 리포트 | BabyRoad',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function GrowthReportPage() {
   const user = await getAuthUser()
   if (!user) redirect('/login')
@@ -58,16 +60,33 @@ export default async function GrowthReportPage() {
   const latestRecord = records[records.length - 1] ?? null
   const chartPoints = toGrowthChartPoints(records, child)
   const standardSex = getGrowthStandardSex(child)
+  const standardAgeMonths = Array.from(
+    new Set(
+      chartPoints
+        .map((point) => point.ageMonth)
+        .filter((ageMonth): ageMonth is number => ageMonth !== null)
+    )
+  )
 
   let standardRows: GrowthStandardPercentileRow[] = []
-  if (child.status === 'born' && standardSex && child.birth_date) {
-    const { data: standardData } = await supabase
+  if (standardSex && child.birth_date && standardAgeMonths.length > 0) {
+    const { data: standardData, error: standardError } = await supabase
       .from('growth_standard_percentiles')
       .select('id, standard_source, sex, metric, age_month, p3, p15, p50, p85, p97, l_value, m_value, s_value, created_at')
       .eq('standard_source', GROWTH_STANDARD_SOURCE)
       .eq('sex', standardSex)
       .in('metric', ['height', 'weight', 'head_circumference'])
+      .in('age_month', standardAgeMonths)
       .order('age_month', { ascending: true })
+
+    if (standardError) {
+      console.warn('[growth-report] growth standard query failed', {
+        code: standardError.code,
+        standardSource: GROWTH_STANDARD_SOURCE,
+        standardSex,
+        ageMonths: standardAgeMonths,
+      })
+    }
 
     standardRows = (standardData ?? []) as GrowthStandardPercentileRow[]
   }

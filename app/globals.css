@@ -24,6 +24,15 @@
 }
 
 @layer components {
+  .intro-screen {
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
   .babyroad-page {
     @apply min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(246,176,146,0.22),transparent_34%),linear-gradient(180deg,#FFF9F3_0%,#FFFDF8_48%,#EAF6F2_100%)] text-[#1F2D3D];
   }

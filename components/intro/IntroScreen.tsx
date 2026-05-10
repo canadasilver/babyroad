@@ -1,115 +1,56 @@
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import BabyRoadLogo from '@/components/brand/BabyRoadLogo'
 
-export type IntroDestination = '/login' | '/onboarding' | '/dashboard'
-
-type IntroScreenProps = {
-  durationMs?: number
-}
-
-function wait(ms: number) {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
-
-async function resolveIntroDestination(): Promise<IntroDestination> {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return '/login'
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .maybeSingle()
-
-  return profile ? '/dashboard' : '/onboarding'
-}
-
-export default function IntroScreen({ durationMs = 2700 }: IntroScreenProps) {
-  const router = useRouter()
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function prepareNextScreen() {
-      const [destination] = await Promise.all([
-        resolveIntroDestination(),
-        wait(durationMs),
-      ])
-
-      if (!isMounted) return
-
-      router.prefetch(destination)
-      router.replace(destination)
-    }
-
-    void prepareNextScreen()
-
-    return () => {
-      isMounted = false
-    }
-  }, [durationMs, router])
-
+export default function IntroScreen() {
   return (
-    <main className="relative flex min-h-screen overflow-hidden bg-[#fffaf2] px-5 py-8 text-slate-800">
+    <main className="intro-screen relative flex bg-[#fffaf2] px-4 py-4 text-slate-800">
       <div className="intro-soft-blob intro-soft-blob-peach" />
       <div className="intro-soft-blob intro-soft-blob-mint" />
       <div className="intro-soft-blob intro-soft-blob-cream" />
 
       <section
         aria-label="BabyRoad 인트로"
-        className="intro-fade-in relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col items-center justify-between rounded-[2rem] border border-white/80 bg-white/45 px-5 py-8 text-center shadow-[0_24px_80px_rgba(47,79,79,0.10)] backdrop-blur-sm sm:min-h-[780px]"
+        className="intro-fade-in relative z-10 mx-auto flex h-full w-full max-w-md flex-col items-center justify-between overflow-hidden rounded-[2rem] border border-white/80 bg-white/45 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-center shadow-[0_24px_80px_rgba(47,79,79,0.10)] backdrop-blur-sm"
       >
-        <div className="flex w-full flex-col items-center">
+        <div className="flex w-full shrink-0 flex-col items-center">
           <div className="intro-float flex flex-col items-center">
-            <BabyRoadLogo size="lg" align="center" className="flex-col" />
+            <BabyRoadLogo size="md" align="center" className="flex-col" />
           </div>
 
-          <div className="mt-5 flex items-center gap-3 text-[#f2a88f]" aria-hidden="true">
-            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#f2c7b8]" />
-            <span className="text-lg">♥</span>
-            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#f2c7b8]" />
+          <div className="mt-3 flex items-center gap-3 text-[#f2a88f]" aria-hidden="true">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#f2c7b8]" />
+            <span className="text-base">♥</span>
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#f2c7b8]" />
           </div>
 
-          <p className="mt-4 text-base font-medium leading-relaxed text-slate-500">
+          <p className="mt-3 text-[1.05rem] font-bold leading-7 text-[#25344A]">
             우리 아이의 성장 여정을
             <br />
-            함께 기록해요
+            따뜻하게 기록해보세요.
           </p>
-          <p className="mt-2 text-sm text-slate-400">Growing with your little one</p>
+          <p className="mt-2 max-w-[18rem] text-xs leading-5 text-[#6B7A90]">
+            키, 몸무게, 예방접종, 건강 기록까지 한눈에 관리할 수 있어요.
+          </p>
         </div>
 
-        <div className="relative my-8 w-full">
+        <div className="relative flex min-h-0 w-full flex-1 items-center py-2">
           <DecorativeSky />
           <StrollerIllustration />
         </div>
 
-        <div className="w-full pb-3">
-          <p className="text-sm font-medium text-slate-500">소중한 기록을 준비하고 있어요</p>
-          <div className="mx-auto mt-5 flex w-full max-w-[230px] items-center gap-1.5" aria-hidden="true">
-            {Array.from({ length: 9 }).map((_, index) => (
-              <span
-                key={index}
-                className="intro-progress-segment h-1.5 flex-1 rounded-full bg-[#dce5e9]"
-                style={{ animationDelay: `${index * 110}ms` }}
-              />
-            ))}
-          </div>
-          <p className="sr-only" aria-live="polite">
-            인트로 화면을 표시한 뒤 다음 화면으로 이동합니다.
-          </p>
+        <div className="w-full shrink-0 space-y-3">
+          <Link
+            href="/login?mode=start"
+            className="flex min-h-12 w-full items-center justify-center rounded-full bg-[#4FA99A] px-5 text-sm font-bold text-white shadow-[0_14px_30px_rgba(79,169,154,0.22)] transition hover:bg-[#438f83] focus:outline-none focus:ring-2 focus:ring-[#4FA99A]/35 active:scale-[0.99]"
+          >
+            처음 시작하기
+          </Link>
+          <Link
+            href="/login?mode=login"
+            className="flex min-h-12 w-full items-center justify-center rounded-full border border-[#CFE3D8] bg-white/78 px-5 text-sm font-bold text-[#25344A] shadow-[0_10px_24px_rgba(37,52,74,0.06)] transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#4FA99A]/20 active:scale-[0.99]"
+          >
+            이미 계정이 있어요
+          </Link>
         </div>
       </section>
     </main>
@@ -131,7 +72,7 @@ function DecorativeSky() {
 function StrollerIllustration() {
   return (
     <svg
-      className="intro-float-slow mx-auto h-auto w-full max-w-[330px]"
+      className="intro-float-slow mx-auto h-auto max-h-[34dvh] w-full max-w-[300px] sm:max-h-[38dvh]"
       viewBox="0 0 360 330"
       role="img"
       aria-label="잠든 아기가 있는 유모차 일러스트"

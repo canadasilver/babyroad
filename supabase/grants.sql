@@ -29,6 +29,7 @@ GRANT SELECT ON public.vaccines                TO anon, authenticated;
 GRANT SELECT ON public.vaccine_schedules       TO anon, authenticated;
 GRANT SELECT ON public.development_contents    TO anon, authenticated;
 GRANT SELECT ON public.development_checklists  TO anon, authenticated;
+GRANT SELECT ON public.growth_standard_percentiles TO anon, authenticated;
 
 -- ============================================================
 -- 사용자 소유 테이블 — authenticated 전용

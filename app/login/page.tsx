@@ -49,24 +49,55 @@ const SAFE_REASONS = new Set([
   'unknown_provider_error',
 ])
 
-type SearchParams = Promise<{ error?: string; reason?: string }>
+type LoginMode = 'start' | 'login'
+
+type SearchParams = Promise<{ error?: string; mode?: string; reason?: string }>
+
+const LOGIN_PAGE_COPY: Record<LoginMode | 'default', {
+  description: string
+  heading: string
+  title: string | null
+}> = {
+  start: {
+    title: 'BabyRoad 시작하기',
+    description: 'Google 계정으로 간편하게 우리 아이의 기록을 시작할 수 있어요.',
+    heading: '소셜 계정으로 시작하기',
+  },
+  login: {
+    title: '다시 만나서 반가워요',
+    description: '사용하던 Google 계정으로 로그인해주세요.',
+    heading: '소셜 계정으로 로그인하기',
+  },
+  default: {
+    title: null,
+    description: '임신부터 학교가기 전까지, 우리 아이 성장 로드맵',
+    heading: '소셜 계정으로 시작하기',
+  },
+}
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: SearchParams
 }) {
-  const { error, reason } = await searchParams
+  const { error, mode, reason } = await searchParams
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ?? ''
   const errorMessage = error ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_failed) : null
+  const loginMode: LoginMode | 'default' = mode === 'start' || mode === 'login' ? mode : 'default'
+  const pageCopy = LOGIN_PAGE_COPY[loginMode]
   const safeReason = reason && SAFE_REASONS.has(reason) ? reason : null
 
   return (
     <AppShell centered contentClassName="max-w-sm">
         <div className="mb-10 text-center">
           <BabyRoadLogo size="md" align="center" className="flex-col" />
+          {pageCopy.title && (
+            <h1 className="mt-5 text-2xl font-black tracking-normal text-[#25344A]">
+              {pageCopy.title}
+            </h1>
+          )}
           <p className="mt-5 text-sm leading-relaxed text-[#6B7A90]">
-            임신부터 학교가기 전까지, 우리 아이 성장 로드맵
+            {pageCopy.description}
           </p>
         </div>
 
@@ -101,7 +132,7 @@ export default async function LoginPage({
 
         <section aria-label="소셜 로그인">
           <h2 className="mb-5 text-center text-sm font-bold text-[#25344A]">
-            소셜 계정으로 시작하기
+            {pageCopy.heading}
           </h2>
           <SocialLoginButtons googleClientId={googleClientId} />
         </section>

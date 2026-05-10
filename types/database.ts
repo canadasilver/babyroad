@@ -676,6 +676,61 @@ export interface Database {
         }
         Relationships: []
       }
+      development_guides: {
+        Row: {
+          id: string
+          min_month: number
+          max_month: number | null
+          title: string
+          summary: string
+          milestones: string[]
+          parent_roles: string[]
+          play_ideas: string[]
+          care_tips: string[]
+          caution_notes: string[]
+          source_summary: string | null
+          source_links: { label: string; url: string }[]
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          min_month: number
+          max_month?: number | null
+          title: string
+          summary: string
+          milestones?: string[]
+          parent_roles?: string[]
+          play_ideas?: string[]
+          care_tips?: string[]
+          caution_notes?: string[]
+          source_summary?: string | null
+          source_links?: { label: string; url: string }[]
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          min_month?: number
+          max_month?: number | null
+          title?: string
+          summary?: string
+          milestones?: string[]
+          parent_roles?: string[]
+          play_ideas?: string[]
+          care_tips?: string[]
+          caution_notes?: string[]
+          source_summary?: string | null
+          source_links?: { label: string; url: string }[]
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

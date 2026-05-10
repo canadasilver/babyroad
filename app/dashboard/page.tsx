@@ -17,7 +17,6 @@ import {
   getAgeInMonths,
 } from '@/lib/date'
 import { formatNumber } from '@/lib/utils'
-import { getDevelopmentGuide } from '@/lib/development-guides'
 import type { Child, ChildGrowthRecord } from '@/types/child'
 import type { Tables } from '@/types/database'
 
@@ -79,6 +78,8 @@ export default async function DashboardPage() {
   let latestSleepRecord: Tables<'child_sleep_records'> | null = null
   let latestHealthRecord: Tables<'child_health_records'> | null = null
   let latestCommunityPosts: Tables<'community_posts'>[] = []
+  let developmentGuide: Tables<'development_guides'> | null = null
+  let childAgeInMonths: number | null = null
   let nextVaccination: {
     name: string
     doseLabel: string
@@ -162,6 +163,20 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false })
       .limit(3)
     latestCommunityPosts = (communityData ?? []) as Tables<'community_posts'>[]
+
+    if (child.status === 'born' && child.birth_date) {
+      childAgeInMonths = getAgeInMonths(child.birth_date)
+      const { data: guideData } = await supabase
+        .from('development_guides')
+        .select('*')
+        .eq('is_active', true)
+        .lte('min_month', childAgeInMonths)
+        .or(`max_month.is.null,max_month.gte.${childAgeInMonths}`)
+        .order('sort_order', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      developmentGuide = guideData as Tables<'development_guides'> | null
+    }
 
     if (
       child.status === 'born' &&
@@ -260,32 +275,27 @@ export default async function DashboardPage() {
           )}
 
           {/* 이번 달 발달 가이드 카드 */}
-          {child && child.status === 'born' && (() => {
-            const ageInMonths = child.birth_date ? getAgeInMonths(child.birth_date) : null
-            if (ageInMonths === null) {
-              return (
-                <Card>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900">이번 달 발달 가이드</h3>
-                      <p className="mt-1 text-xs text-[#9AA8BA]">아이 생년월일을 입력하면 맞춤 가이드를 볼 수 있어요.</p>
-                    </div>
-                    <Link href="/development" className="babyroad-link shrink-0">
-                      자세히 보기
-                    </Link>
+          {child && child.status === 'born' && (
+            childAgeInMonths === null ? (
+              <Card>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">이번 달 발달 가이드</h3>
+                    <p className="mt-1 text-xs text-[#9AA8BA]">아이 생년월일을 입력하면 맞춤 가이드를 볼 수 있어요.</p>
                   </div>
-                </Card>
-              )
-            }
-            const guide = getDevelopmentGuide(ageInMonths)
-            return (
+                  <Link href="/development" className="babyroad-link shrink-0">
+                    자세히 보기
+                  </Link>
+                </div>
+              </Card>
+            ) : (
               <Card variant="hero" className="relative overflow-hidden border-white/70">
                 <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#CFE3D8]/50" />
                 <div className="relative">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="rounded-full bg-[#EAF6F2] px-2.5 py-0.5 text-xs font-semibold text-[#2F8F84]">
-                        {ageInMonths}개월
+                        {childAgeInMonths}개월
                       </span>
                       <h3 className="text-sm font-semibold text-[#25344A]">이번 달 발달 가이드</h3>
                     </div>
@@ -293,13 +303,23 @@ export default async function DashboardPage() {
                       자세히 보기
                     </Link>
                   </div>
-                  <p className="text-xs font-semibold text-[#4FA99A]">{guide.ageRange}</p>
-                  <p className="mt-1 text-sm font-bold text-[#25344A]">{guide.title}</p>
-                  <p className="mt-1.5 text-xs leading-5 text-[#6B7A90] line-clamp-2">{guide.summary}</p>
+                  {developmentGuide ? (
+                    <>
+                      <p className="text-xs font-semibold text-[#4FA99A]">
+                        {developmentGuide.max_month === null
+                          ? `${developmentGuide.min_month}개월 이상`
+                          : `${developmentGuide.min_month}~${developmentGuide.max_month}개월`}
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-[#25344A]">{developmentGuide.title}</p>
+                      <p className="mt-1.5 text-xs leading-5 text-[#6B7A90] line-clamp-2">{developmentGuide.summary}</p>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-xs text-[#9AA8BA]">발달 가이드 정보를 불러오는 중이에요.</p>
+                  )}
                 </div>
               </Card>
             )
-          })()}
+          )}
 
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-slate-900">오늘 할 일</h3>

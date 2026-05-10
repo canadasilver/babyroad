@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import AppButton from '@/components/ui/AppButton'
 import { createClient } from '@/lib/supabase/client'
@@ -15,6 +16,7 @@ type ChildPhotoUploaderProps = {
   gender: string
   status: string
   compact?: boolean
+  editHref?: string
 }
 
 const ICON: Record<string, string> = {
@@ -31,6 +33,7 @@ export default function ChildPhotoUploader({
   gender,
   status,
   compact = false,
+  editHref,
 }: ChildPhotoUploaderProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -154,29 +157,38 @@ export default function ChildPhotoUploader({
     const isBusy = uploading || deleting
 
     return (
-      <div className="flex shrink-0 flex-col items-end gap-1.5">
+      <div className="flex w-[118px] shrink-0 flex-col items-end gap-1.5 min-[380px]:w-[132px]">
+        {editHref ? (
+          <Link
+            href={editHref}
+            className="inline-flex min-h-8 w-full items-center justify-center rounded-full border border-white/80 bg-white/72 px-3 text-center text-xs font-bold text-[#2F8F84] shadow-[0_8px_18px_rgba(79,169,154,0.10)] transition hover:bg-white"
+          >
+            아이 정보 수정
+          </Link>
+        ) : null}
+
         {isBusy ? (
-          <span className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#9AA8BA]">
+          <span className="inline-flex min-h-8 w-full items-center justify-center rounded-full bg-[#EAF6F2] px-3 text-xs font-semibold text-[#9AA8BA]">
             {uploading ? '업로드 중...' : '삭제 중...'}
           </span>
         ) : !currentPhotoUrl ? (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+            className="inline-flex min-h-8 w-full items-center justify-center rounded-full bg-[#EAF6F2] px-3 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
           >
             사진 등록
           </button>
         ) : (
-          <div className="flex gap-1.5">
+          <div className="flex w-full gap-1.5">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="rounded-full bg-[#EAF6F2] px-2.5 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+              className="inline-flex min-h-8 flex-1 items-center justify-center rounded-full bg-[#EAF6F2] px-2 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
             >
-              수정
+              사진 변경
             </button>
             <button
               onClick={handleDeleteCompact}
-              className="rounded-full bg-[#FFF3E9] px-2.5 py-1 text-xs font-semibold text-[#D77C5B] transition-colors hover:bg-[#FEEADB]"
+              className="inline-flex min-h-8 w-11 items-center justify-center rounded-full bg-[#FFF3E9] px-2 text-xs font-semibold text-[#D77C5B] transition-colors hover:bg-[#FEEADB]"
             >
               삭제
             </button>

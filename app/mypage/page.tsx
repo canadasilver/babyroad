@@ -80,7 +80,7 @@ export default async function MypagePage() {
             <Card variant="hero" className="relative overflow-hidden border-white/70">
               <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#CFE3D8]/55" />
               <div className="pointer-events-none absolute -bottom-10 left-10 h-24 w-24 rounded-full bg-[#F6B092]/20" />
-              <div className="relative flex items-center gap-4">
+              <div className="relative flex items-start gap-3 min-[380px]:gap-4">
                 <ChildAvatar
                   photoUrl={child.profile_image_url}
                   gender={child.gender}
@@ -88,7 +88,7 @@ export default async function MypagePage() {
                   size="md"
                   className="bg-white/72 shadow-[0_10px_24px_rgba(37,52,74,0.10)]"
                 />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 pt-1">
                   <p className="text-xs font-semibold text-[#4FA99A]">우리 아이</p>
                   <h2 className="truncate text-xl font-black text-[#25344A]">{child.name}</h2>
                   <p className="text-sm font-medium text-[#6B7A90]">
@@ -103,6 +103,7 @@ export default async function MypagePage() {
                   gender={child.gender}
                   status={child.status}
                   compact
+                  editHref="/mypage/child/edit"
                 />
               </div>
             </Card>
