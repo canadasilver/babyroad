@@ -1,5 +1,4 @@
-import { formatDateTime } from '@/lib/date'
-import CommunityReportButton from '@/components/community/CommunityReportButton'
+import CommunityCommentItem from '@/components/community/CommunityCommentItem'
 import type { Tables } from '@/types/database'
 
 interface CommunityCommentListProps {
@@ -20,35 +19,10 @@ export default function CommunityCommentList({ comments, userId }: CommunityComm
       ) : (
         <div className="space-y-3">
           {comments.map((comment) => (
-            <CommentRow key={comment.id} comment={comment} userId={userId} />
+            <CommunityCommentItem key={comment.id} comment={comment} userId={userId} />
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function CommentRow({
-  comment,
-  userId,
-}: {
-  comment: Tables<'community_comments'>
-  userId: string | null
-}) {
-  return (
-    <div className="rounded-[1.25rem] border border-[#E8EEE9] bg-white/82 px-4 py-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-700">
-              {comment.author_nickname ?? '익명'}
-            </span>
-            <span className="text-xs text-slate-400">{formatDateTime(comment.created_at)}</span>
-          </div>
-          <p className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">{comment.content}</p>
-        </div>
-        <CommunityReportButton commentId={comment.id} userId={userId} />
-      </div>
     </div>
   )
 }

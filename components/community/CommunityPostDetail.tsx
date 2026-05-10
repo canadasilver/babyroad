@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { formatDateTime } from '@/lib/date'
 import CommunityLikeButton from '@/components/community/CommunityLikeButton'
 import CommunityReportButton from '@/components/community/CommunityReportButton'
@@ -63,7 +64,15 @@ export default function CommunityPostDetail({
             initialIsLiked={isLiked}
           />
           {isAuthor && (
-            <CommunityDeleteButton postId={post.id} userId={userId} />
+            <>
+              <Link
+                href={`/community/${post.id}/edit`}
+                className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+              >
+                수정
+              </Link>
+              <CommunityDeleteButton postId={post.id} userId={userId} />
+            </>
           )}
         </div>
         <CommunityReportButton postId={post.id} userId={userId} />

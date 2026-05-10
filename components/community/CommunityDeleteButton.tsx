@@ -6,52 +6,49 @@ import { createClient } from '@/lib/supabase/client'
 
 interface CommunityDeleteButtonProps {
   postId: string
-  userId: string
+  userId: string | null
 }
 
 export default function CommunityDeleteButton({ postId, userId }: CommunityDeleteButtonProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [confirm, setConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleDelete() {
-    if (!confirm) {
-      setConfirm(true)
+    if (!userId) return
+
+    const confirmed = window.confirm(
+      '이 게시글을 삭제할까요? 삭제하면 목록과 상세 화면에서 보이지 않습니다.'
+    )
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    const supabase = createClient()
+    const now = new Date().toISOString()
+
+    const { error } = await supabase
+      .from('community_posts')
+      .update({ deleted_at: now, updated_at: now, status: 'deleted' } as never)
+      .eq('id', postId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+
+    if (error) {
+      alert('삭제 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+      setIsDeleting(false)
       return
     }
 
-    setLoading(true)
-    const supabase = createClient()
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from('community_posts') as any)
-      .update({
-        status: 'deleted',
-        deleted_at: new Date().toISOString(),
-      })
-      .eq('id', postId)
-      .eq('user_id', userId)
-
-    if (!error) {
-      router.push('/community')
-      router.refresh()
-    } else {
-      setLoading(false)
-      setConfirm(false)
-    }
+    router.push('/community')
+    router.refresh()
   }
 
   return (
     <button
       onClick={handleDelete}
-      disabled={loading}
-      className={`rounded-xl px-3 py-2 text-xs font-medium transition-colors disabled:opacity-50 ${
-        confirm
-          ? 'bg-red-500 text-white hover:bg-red-600'
-          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-      }`}
+      disabled={isDeleting}
+      className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
     >
-      {loading ? '삭제 중...' : confirm ? '정말 삭제' : '삭제'}
+      {isDeleting ? '삭제 중...' : '삭제'}
     </button>
   )
 }
