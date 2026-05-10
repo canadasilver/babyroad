@@ -45,13 +45,13 @@ export default async function VaccinationsPage() {
 
   if (child.status === 'pregnancy') {
     return (
-      <div className="flex min-h-screen flex-col bg-slate-50">
+      <div className="babyroad-page flex min-h-screen flex-col">
         <Header title="예방접종" />
-        <main className="flex-1 px-4 py-6 pb-24">
+        <main className="flex-1 px-4 py-6 pb-28">
           <div className="mx-auto max-w-md space-y-4">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">예방접종</h1>
-              <p className="mt-1 text-sm text-slate-500">
+              <h1 className="babyroad-title">예방접종</h1>
+              <p className="babyroad-subtitle">
                 아이의 출생일을 기준으로 예방접종 일정을 확인하고 완료 기록을 남겨요.
               </p>
             </div>
@@ -75,9 +75,9 @@ export default async function VaccinationsPage() {
 
   if (!child.birth_date) {
     return (
-      <div className="flex min-h-screen flex-col bg-slate-50">
+      <div className="babyroad-page flex min-h-screen flex-col">
         <Header title="예방접종" />
-        <main className="flex-1 px-4 py-6 pb-24">
+        <main className="flex-1 px-4 py-6 pb-28">
           <div className="mx-auto max-w-md space-y-4">
             <ChildSummaryCard child={child} />
             <Card className="py-6 text-center">
@@ -166,14 +166,14 @@ export default async function VaccinationsPage() {
   )
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="예방접종" />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">예방접종</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="babyroad-title">예방접종</h1>
+            <p className="babyroad-subtitle">
               아이의 출생일을 기준으로 예방접종 일정을 확인하고 완료 기록을 남겨요.
             </p>
           </div>
@@ -197,7 +197,7 @@ export default async function VaccinationsPage() {
                 <span
                   className={
                     nextVaccination.uiStatus === 'available'
-                      ? 'shrink-0 rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700'
+                      ? 'shrink-0 rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#D77C5B]'
                       : 'shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700'
                   }
                 >

@@ -18,7 +18,7 @@ export default function VaccinationStatusCard({ counts }: VaccinationStatusCardP
       <h2 className="mb-3 text-sm font-semibold text-slate-900">접종 현황</h2>
       <div className="grid grid-cols-4 gap-2">
         <StatusItem label="완료" value={counts.completed} colorClass="text-green-700 bg-green-50" />
-        <StatusItem label="접종 가능" value={counts.available} colorClass="text-orange-700 bg-orange-50" />
+        <StatusItem label="접종 가능" value={counts.available} colorClass="text-[#D77C5B] bg-[#FFF3E9]" />
         <StatusItem label="예정" value={counts.scheduled} colorClass="text-blue-700 bg-blue-50" />
         <StatusItem label="지연 가능" value={counts.delayed} colorClass="text-red-700 bg-red-50" />
       </div>

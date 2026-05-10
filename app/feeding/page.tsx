@@ -49,14 +49,14 @@ export default async function FeedingPage() {
   const records = (recordsData ?? []) as Tables<'child_feeding_records'>[]
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="수유/식사 기록" />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">수유/식사 기록</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="babyroad-title">수유/식사 기록</h1>
+            <p className="babyroad-subtitle">
               모유, 분유, 이유식, 유아식 기록을 남겨 아이의 식사 패턴을 확인해요.
             </p>
           </div>

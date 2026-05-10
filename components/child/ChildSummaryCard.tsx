@@ -1,4 +1,5 @@
 import Card from '@/components/common/Card'
+import ChildAvatar from '@/components/child/ChildAvatar'
 import { getAgeLabel } from '@/lib/date'
 import type { Child } from '@/types/child'
 
@@ -12,13 +13,6 @@ const GENDER_LABEL: Record<string, string> = {
   unknown: '미정',
 }
 
-const CHILD_ICON: Record<string, string> = {
-  pregnancy: '🤰',
-  male: '👦',
-  female: '👧',
-  unknown: '👶',
-}
-
 export default function ChildSummaryCard({ child }: ChildSummaryCardProps) {
   const ageLabel = getAgeLabel({
     status: child.status,
@@ -26,23 +20,29 @@ export default function ChildSummaryCard({ child }: ChildSummaryCardProps) {
     dueDate: child.due_date,
   })
 
-  const icon =
-    child.status === 'pregnancy'
-      ? CHILD_ICON.pregnancy
-      : (CHILD_ICON[child.gender] ?? CHILD_ICON.unknown)
-
   return (
-    <Card className="flex items-center gap-4 border-0 bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-md">
-      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl">
-        {icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-white/70">우리 아이</p>
-        <h2 className="truncate text-lg font-bold">{child.name}</h2>
-        <p className="text-sm text-white/80">
-          {ageLabel}
-          {child.status === 'born' && ` · ${GENDER_LABEL[child.gender] ?? '미정'}`}
-        </p>
+    <Card
+      variant="hero"
+      className="relative overflow-hidden border-white/70"
+    >
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#CFE3D8]/55" />
+      <div className="pointer-events-none absolute -bottom-10 left-10 h-24 w-24 rounded-full bg-[#F6B092]/20" />
+      <div className="relative flex items-center gap-4">
+        <ChildAvatar
+          photoUrl={child.profile_image_url}
+          gender={child.gender}
+          status={child.status}
+          size="md"
+          className="bg-white/72 shadow-[0_10px_24px_rgba(37,52,74,0.10)]"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-[#4FA99A]">우리 아이</p>
+          <h2 className="truncate text-xl font-black text-[#25344A]">{child.name}</h2>
+          <p className="text-sm font-medium text-[#6B7A90]">
+            {ageLabel}
+            {child.status === 'born' && ` · ${GENDER_LABEL[child.gender] ?? '미정'}`}
+          </p>
+        </div>
       </div>
     </Card>
   )

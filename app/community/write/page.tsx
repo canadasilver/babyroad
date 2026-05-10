@@ -17,15 +17,15 @@ export default async function CommunityWritePage() {
   if (!profile) redirect('/onboarding')
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="글쓰기" showBack />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
           <CommunityPostForm userId={user.id} authorNickname={profile.nickname} />
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <p className="text-xs leading-relaxed text-amber-800">
+          <div className="rounded-[1.25rem] border border-[#F6D6C4] bg-[#FFF7DF]/78 px-4 py-3">
+            <p className="text-xs leading-relaxed text-[#9A6A38]">
               커뮤니티의 글과 댓글은 사용자 경험 공유를 위한 내용입니다.
               아이의 건강, 질병, 예방접종, 발달 관련 판단은 반드시 전문 의료진과 상담해 주세요.
             </p>

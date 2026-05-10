@@ -10,7 +10,7 @@ export default function HealthRecordList({ records }: HealthRecordListProps) {
     <div>
       <h2 className="mb-3 text-sm font-semibold text-slate-700">최근 기록</h2>
       {records.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
+        <div className="rounded-[1.35rem] border border-white/70 bg-white/62 p-6 text-center shadow-[0_12px_32px_rgba(79,169,154,0.08)]">
           <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
         </div>
       ) : (
@@ -26,7 +26,7 @@ export default function HealthRecordList({ records }: HealthRecordListProps) {
 
 function HealthRecordRow({ record }: { record: Tables<'child_health_records'> }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[1.35rem] border border-[#E8EEE9] bg-white/85 p-4 shadow-[0_14px_38px_rgba(37,52,74,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-slate-500">{formatDateTime(record.recorded_at)}</p>

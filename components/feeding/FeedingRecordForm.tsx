@@ -167,7 +167,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
             type="datetime-local"
             value={recordedAt}
             onChange={(e) => setRecordedAt(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.recordedAt && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.recordedAt}</p>
@@ -182,7 +182,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
             id="feedingType"
             value={feedingType}
             onChange={(e) => setFeedingType(e.target.value as FeedingFormData['feedingType'])}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           >
             {FEEDING_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -207,7 +207,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
               placeholder="예: 120"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              className="babyroad-input"
             />
             {fieldErrors.amount && (
               <p className="mt-1 text-xs text-red-500">{fieldErrors.amount}</p>
@@ -221,7 +221,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
               id="unit"
               value={unit}
               onChange={(e) => setUnit(e.target.value as FeedingFormData['unit'])}
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              className="babyroad-input"
             >
               {UNITS.map((u) => (
                 <option key={u.value} value={u.value}>{u.label}</option>
@@ -240,7 +240,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
             placeholder="예: 사과퓨레, 쌀죽"
             value={foodName}
             onChange={(e) => setFoodName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.foodName && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.foodName}</p>
@@ -257,7 +257,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
             placeholder="예: 잘 먹음, 발진 있음"
             value={reaction}
             onChange={(e) => setReaction(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.reaction && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.reaction}</p>
@@ -274,7 +274,7 @@ export default function FeedingRecordForm({ userId, childId }: FeedingRecordForm
             placeholder="자유롭게 기록해요."
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input resize-none"
           />
           {fieldErrors.memo && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.memo}</p>

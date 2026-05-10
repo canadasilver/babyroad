@@ -46,10 +46,10 @@ export const metadata: Metadata = {
 }
 
 const QUICK_RECORDS = [
-  { icon: '📏', label: '성장', href: '/growth' },
-  { icon: '🍼', label: '수유', href: '/feeding' },
-  { icon: '🌙', label: '수면', href: '/sleep' },
-  { icon: '🩺', label: '건강', href: '/health' },
+  { icon: '↗', label: '성장', href: '/growth' },
+  { icon: '∪', label: '수유', href: '/feeding' },
+  { icon: '◐', label: '수면', href: '/sleep' },
+  { icon: '+', label: '건강', href: '/health' },
 ] as const
 
 export default async function DashboardPage() {
@@ -62,7 +62,9 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: children } = await supabase
     .from('children')
-    .select('*')
+    .select(
+      'id, user_id, name, nickname, gender, status, due_date, birth_date, birth_weight, birth_height, birth_head_circumference, profile_image_url, is_premature, memo, created_at, updated_at, deleted_at'
+    )
     .eq('user_id', user.id)
     .is('deleted_at', null)
     .order('created_at', { ascending: true })
@@ -87,7 +89,7 @@ export default async function DashboardPage() {
       await Promise.all([
         supabase
           .from('child_growth_records')
-          .select('*')
+          .select('id, user_id, child_id, record_date, height, weight, head_circumference, memo, created_at, updated_at, deleted_at')
           .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
@@ -97,7 +99,7 @@ export default async function DashboardPage() {
           .maybeSingle(),
         supabase
           .from('child_feeding_records')
-          .select('*')
+          .select('id, user_id, child_id, recorded_at, feeding_type, amount, unit, food_name, reaction, memo, created_at, updated_at, deleted_at')
           .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
@@ -106,7 +108,7 @@ export default async function DashboardPage() {
           .maybeSingle(),
         supabase
           .from('child_sleep_records')
-          .select('*')
+          .select('id, user_id, child_id, sleep_start, sleep_end, sleep_type, wake_count, memo, created_at, updated_at, deleted_at')
           .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
@@ -115,7 +117,7 @@ export default async function DashboardPage() {
           .maybeSingle(),
         supabase
           .from('child_health_records')
-          .select('*')
+          .select('id, user_id, child_id, recorded_at, temperature, symptoms, medicine, hospital_name, memo, created_at, updated_at, deleted_at')
           .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
@@ -231,12 +233,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="BabyRoad" />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[#6B7A90]">
             안녕하세요,{' '}
             <span className="font-semibold text-slate-800">{profile.nickname}</span>님
           </p>
@@ -248,7 +250,7 @@ export default async function DashboardPage() {
               <p className="text-sm text-slate-500">아직 등록된 아이 정보가 없어요.</p>
               <Link
                 href="/onboarding"
-                className="mt-3 inline-flex rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white"
+                className="mt-3 inline-flex min-h-11 items-center rounded-2xl bg-[#4FA99A] px-4 py-2 text-sm font-semibold text-white"
               >
                 아이 정보 등록하기
               </Link>
@@ -257,7 +259,7 @@ export default async function DashboardPage() {
 
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-slate-900">오늘 할 일</h3>
-            <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+            <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
               <p className="text-sm text-slate-500">오늘 예정된 일정이 없어요.</p>
             </div>
           </Card>
@@ -265,7 +267,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">다음 예방접종</h3>
-              <Link href="/vaccinations" className="text-xs font-medium text-orange-600">
+              <Link href="/vaccinations" className="babyroad-link">
                 모두 보기
               </Link>
             </div>
@@ -282,7 +284,7 @@ export default async function DashboardPage() {
                 <span
                   className={
                     nextVaccination.uiStatus === 'available'
-                      ? 'shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700'
+                      ? 'shrink-0 rounded-full bg-[#FFF3E9] px-2.5 py-1 text-xs font-semibold text-[#D77C5B]'
                       : nextVaccination.uiStatus === 'delayed'
                         ? 'shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700'
                         : 'shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700'
@@ -296,11 +298,11 @@ export default async function DashboardPage() {
                 </span>
               </div>
             ) : child?.status === 'pregnancy' ? (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">출생 후 예방접종 일정을 확인할 수 있어요.</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">모든 예방접종이 완료되었습니다. 🎉</p>
               </div>
             )}
@@ -309,7 +311,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">최근 성장 기록</h3>
-              <Link href="/growth" className="text-xs font-medium text-orange-600">
+              <Link href="/growth" className="babyroad-link">
                 기록하기
               </Link>
             </div>
@@ -339,7 +341,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 성장 기록이 없어요.</p>
               </div>
             )}
@@ -348,7 +350,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">최근 수유/식사</h3>
-              <Link href="/feeding" className="text-xs font-medium text-orange-600">
+              <Link href="/feeding" className="babyroad-link">
                 기록하기
               </Link>
             </div>
@@ -368,7 +370,7 @@ export default async function DashboardPage() {
                   </p>
                 </div>
                 {latestFeedingRecord.amount !== null && (
-                  <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">
+                  <span className="shrink-0 rounded-full bg-[#FFF3E9] px-2.5 py-1 text-xs font-semibold text-[#D77C5B]">
                     {latestFeedingRecord.amount}
                     {latestFeedingRecord.unit
                       ? (UNIT_LABEL[latestFeedingRecord.unit] ?? latestFeedingRecord.unit)
@@ -377,7 +379,7 @@ export default async function DashboardPage() {
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
               </div>
             )}
@@ -386,7 +388,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">최근 수면</h3>
-              <Link href="/sleep" className="text-xs font-medium text-orange-600">
+              <Link href="/sleep" className="babyroad-link">
                 기록하기
               </Link>
             </div>
@@ -414,7 +416,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
               </div>
             )}
@@ -423,7 +425,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">최근 건강</h3>
-              <Link href="/health" className="text-xs font-medium text-orange-600">
+              <Link href="/health" className="babyroad-link">
                 기록하기
               </Link>
             </div>
@@ -450,7 +452,7 @@ export default async function DashboardPage() {
                     className={
                       latestHealthRecord.temperature >= 37.5
                         ? 'shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700'
-                        : 'shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700'
+                        : 'shrink-0 rounded-full bg-[#FFF3E9] px-2.5 py-1 text-xs font-semibold text-[#D77C5B]'
                     }
                   >
                     {latestHealthRecord.temperature}℃
@@ -458,7 +460,7 @@ export default async function DashboardPage() {
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
+              <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
               </div>
             )}
@@ -467,7 +469,7 @@ export default async function DashboardPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-900">최신 커뮤니티</h3>
-              <Link href="/community" className="text-xs font-medium text-orange-600">
+              <Link href="/community" className="babyroad-link">
                 더 보기
               </Link>
             </div>
@@ -478,10 +480,10 @@ export default async function DashboardPage() {
                   <Link
                     key={post.id}
                     href={`/community/${post.id}`}
-                    className="block rounded-xl bg-slate-50 px-3 py-2.5 hover:bg-slate-100"
+                    className="block rounded-2xl bg-white/58 px-3 py-2.5 hover:bg-[#EAF6F2]"
                   >
                     <div className="flex items-start gap-2">
-                      <span className="shrink-0 rounded-full bg-orange-50 px-2 py-0.5 text-xs text-orange-700">
+                      <span className="shrink-0 rounded-full bg-[#EAF6F2] px-2 py-0.5 text-xs font-semibold text-[#2F8F84]">
                         {post.category}
                       </span>
                     </div>
@@ -495,8 +497,8 @@ export default async function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-center">
-                <p className="text-sm text-slate-500">아직 게시글이 없어요.</p>
+              <div className="babyroad-empty">
+                아직 게시글이 없어요.
               </div>
             )}
           </Card>
@@ -508,7 +510,7 @@ export default async function DashboardPage() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="flex flex-col items-center gap-1.5 rounded-xl bg-slate-50 p-3 text-center transition-colors hover:bg-slate-100"
+                  className="flex flex-col items-center gap-1.5 rounded-2xl bg-[#EAF6F2]/72 p-3 text-center text-[#2F8F84] transition-colors hover:bg-[#DDEFE9]"
                 >
                   <span className="text-xl">{item.icon}</span>
                   <span className="text-xs font-medium text-slate-600">{item.label}</span>
@@ -528,9 +530,9 @@ export default async function DashboardPage() {
 
 function DashboardMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+    <div className="rounded-2xl bg-[#EAF6F2]/72 px-3 py-2">
+      <p className="text-xs text-[#6B7A90]">{label}</p>
+      <p className="mt-1 text-sm font-bold text-[#25344A]">{value}</p>
     </div>
   )
 }

@@ -85,7 +85,7 @@ export default function CommunityReportButton({
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-8">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-[1.35rem] border border-white/70 bg-[#FFFDF8] p-5 shadow-[0_24px_70px_rgba(37,52,74,0.18)]">
             <h3 className="mb-3 text-sm font-semibold text-slate-900">신고하기</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
@@ -94,7 +94,7 @@ export default function CommunityReportButton({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   required
-                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400"
+                  className="babyroad-input"
                 >
                   <option value="">선택해 주세요</option>
                   {REPORT_REASONS.map((r) => (
@@ -114,7 +114,7 @@ export default function CommunityReportButton({
                   onChange={(e) => setContent(e.target.value)}
                   maxLength={500}
                   placeholder="추가 내용을 입력해 주세요."
-                  className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400"
+                  className="babyroad-input resize-none"
                 />
               </div>
               <div className="flex gap-2">

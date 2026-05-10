@@ -1,5 +1,5 @@
 import Card from '@/components/common/Card'
-import { formatDateTime } from '@/lib/date'
+import { formatDateTime, toISODateString } from '@/lib/date'
 import type { Tables } from '@/types/database'
 
 const FEEDING_TYPE_LABEL: Record<string, string> = {
@@ -24,7 +24,7 @@ interface FeedingSummaryCardProps {
 }
 
 export default function FeedingSummaryCard({ records }: FeedingSummaryCardProps) {
-  const todayUtc = new Date().toISOString().split('T')[0]
+  const todayUtc = toISODateString()
   const todayCount = records.filter((r) => r.recorded_at.slice(0, 10) === todayUtc).length
   const latest = records[0] ?? null
 
@@ -32,11 +32,11 @@ export default function FeedingSummaryCard({ records }: FeedingSummaryCardProps)
     <Card>
       <h2 className="mb-3 text-sm font-semibold text-slate-900">오늘 기록 요약</h2>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-orange-50 p-3">
+        <div className="rounded-2xl bg-[#EAF6F2]/78 p-3">
           <p className="text-xs text-slate-500">오늘 기록 수</p>
-          <p className="mt-1 text-xl font-bold text-orange-600">{todayCount}회</p>
+          <p className="mt-1 text-xl font-bold text-[#4FA99A]">{todayCount}회</p>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-2xl bg-white/58 p-3">
           <p className="text-xs text-slate-500">마지막 기록</p>
           {latest ? (
             <>

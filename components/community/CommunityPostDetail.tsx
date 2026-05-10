@@ -7,7 +7,7 @@ import type { Tables } from '@/types/database'
 const CATEGORY_COLOR: Record<string, string> = {
   임신: 'bg-pink-50 text-pink-700',
   신생아: 'bg-sky-50 text-sky-700',
-  이유식: 'bg-orange-50 text-orange-700',
+  이유식: 'bg-[#FFF3E9] text-[#D77C5B]',
   수면: 'bg-indigo-50 text-indigo-700',
   건강: 'bg-red-50 text-red-700',
   예방접종: 'bg-teal-50 text-teal-700',
@@ -33,7 +33,7 @@ export default function CommunityPostDetail({
   const isAuthor = !!userId && userId === post.user_id
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[1.35rem] border border-[#E8EEE9] bg-white/85 p-5 shadow-[0_14px_38px_rgba(37,52,74,0.08)]">
       <div className="flex items-center gap-2">
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${colorClass}`}>
           {post.category}

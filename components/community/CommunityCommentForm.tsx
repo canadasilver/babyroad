@@ -74,7 +74,7 @@ export default function CommunityCommentForm({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         maxLength={500}
-        className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+        className="babyroad-input resize-none"
       />
       {error && <p className="text-xs text-red-500">{error}</p>}
       <div className="flex items-center justify-between">
@@ -82,7 +82,7 @@ export default function CommunityCommentForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-orange-600"
+          className="rounded-2xl bg-[#4FA99A] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 hover:bg-[#428F84]"
         >
           {loading ? '등록 중...' : '댓글 등록'}
         </button>

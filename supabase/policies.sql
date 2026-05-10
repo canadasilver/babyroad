@@ -350,9 +350,9 @@ DROP POLICY IF EXISTS "community_likes_select_auth" ON public.community_likes;
 DROP POLICY IF EXISTS "community_likes_insert_auth" ON public.community_likes;
 DROP POLICY IF EXISTS "community_likes_delete_own"  ON public.community_likes;
 
--- 로그인 사용자: 소프트 삭제되지 않은 좋아요 조회
+-- 비로그인 포함 전체 조회: 게시글 좋아요 카운트 표시용 (head:true 쿼리로 집계만 사용)
 CREATE POLICY "community_likes_select_auth"
-  ON public.community_likes FOR SELECT TO authenticated
+  ON public.community_likes FOR SELECT TO anon, authenticated
   USING (deleted_at IS NULL);
 
 -- 등록: 로그인 사용자만 (unique index로 중복 방지)

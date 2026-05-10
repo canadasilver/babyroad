@@ -627,6 +627,55 @@ export interface Database {
         }
         Relationships: []
       }
+      growth_standard_percentiles: {
+        Row: {
+          id: string
+          standard_source: string
+          sex: 'male' | 'female'
+          metric: 'height' | 'weight' | 'head_circumference'
+          age_month: number
+          p3: number | null
+          p15: number | null
+          p50: number | null
+          p85: number | null
+          p97: number | null
+          l_value: number | null
+          m_value: number | null
+          s_value: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          standard_source: string
+          sex: 'male' | 'female'
+          metric: 'height' | 'weight' | 'head_circumference'
+          age_month: number
+          p3?: number | null
+          p15?: number | null
+          p50?: number | null
+          p85?: number | null
+          p97?: number | null
+          l_value?: number | null
+          m_value?: number | null
+          s_value?: number | null
+          created_at?: string
+        }
+        Update: {
+          standard_source?: string
+          sex?: 'male' | 'female'
+          metric?: 'height' | 'weight' | 'head_circumference'
+          age_month?: number
+          p3?: number | null
+          p15?: number | null
+          p50?: number | null
+          p85?: number | null
+          p97?: number | null
+          l_value?: number | null
+          m_value?: number | null
+          s_value?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

@@ -12,7 +12,7 @@ interface VaccinationCardProps {
 const statusConfig: Record<VaccinationStatus, { label: string; className: string }> = {
   scheduled: { label: '예정', className: 'text-blue-600 bg-blue-50' },
   completed: { label: '완료', className: 'text-green-600 bg-green-50' },
-  delayed: { label: '지연', className: 'text-orange-600 bg-orange-50' },
+  delayed: { label: '지연', className: 'text-[#D77C5B] bg-[#FFF3E9]' },
   skipped: { label: '건너뜀', className: 'text-slate-600 bg-slate-100' },
   consult_required: { label: '상담 필요', className: 'text-red-600 bg-red-50' },
 }

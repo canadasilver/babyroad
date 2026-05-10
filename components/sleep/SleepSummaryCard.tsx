@@ -1,5 +1,5 @@
 import Card from '@/components/common/Card'
-import { formatSleepMinutes } from '@/lib/date'
+import { formatSleepMinutes, toISODateString } from '@/lib/date'
 import type { Tables } from '@/types/database'
 
 interface SleepSummaryCardProps {
@@ -7,7 +7,7 @@ interface SleepSummaryCardProps {
 }
 
 export default function SleepSummaryCard({ records }: SleepSummaryCardProps) {
-  const todayUtc = new Date().toISOString().split('T')[0]
+  const todayUtc = toISODateString()
   const todayRecords = records.filter((r) => r.sleep_start.slice(0, 10) === todayUtc)
 
   const totalMinutes = todayRecords.reduce((acc, r) => {
@@ -40,7 +40,7 @@ export default function SleepSummaryCard({ records }: SleepSummaryCardProps) {
           <p className="text-xs text-slate-500">낮잠 횟수</p>
           <p className="mt-1 text-sm font-bold text-sky-700">{napCount}회</p>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-2xl bg-white/58 p-3">
           <p className="text-xs text-slate-500">밤잠 시간</p>
           <p className="mt-1 text-sm font-bold text-slate-700">
             {nightMinutes > 0 ? formatSleepMinutes(nightMinutes) : '-'}

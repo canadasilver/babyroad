@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons'
+import BabyRoadLogo from '@/components/brand/BabyRoadLogo'
+import AppShell from '@/components/ui/AppShell'
+import MedicalDisclaimer from '@/components/common/MedicalDisclaimer'
 
 export const metadata: Metadata = {
   title: '로그인',
@@ -59,68 +62,57 @@ export default async function LoginPage({
   const safeReason = reason && SAFE_REASONS.has(reason) ? reason : null
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-white px-4 py-12">
-      <div className="w-full max-w-sm">
-
-        {/* 로고 */}
+    <AppShell centered contentClassName="max-w-sm">
         <div className="mb-10 text-center">
-          <div className="text-5xl">🌱</div>
-          <h1 className="mt-3 text-2xl font-bold text-slate-900">베이비로드</h1>
-          <p className="mt-0.5 text-xs font-medium tracking-widest text-slate-400">BabyRoad</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-500">
+          <BabyRoadLogo size="md" align="center" className="flex-col" />
+          <p className="mt-5 text-sm leading-relaxed text-[#6B7A90]">
             임신부터 학교가기 전까지, 우리 아이 성장 로드맵
           </p>
         </div>
 
-        {/* 오류 메시지 */}
         {errorMessage && (
           <div
             role="alert"
-            className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
+            className="mb-6 rounded-[1.25rem] border border-[#F4C8C1] bg-[#FFF0EF]/86 px-4 py-3 text-sm text-[#C45B50] shadow-[0_10px_28px_rgba(196,91,80,0.08)]"
           >
             <div className="flex items-start gap-2">
-              <span className="mt-0.5 flex-shrink-0">⚠️</span>
+              <span className="mt-0.5 flex-shrink-0">!</span>
               <span>{errorMessage}</span>
             </div>
             {error && error !== 'auth_failed' && (
-              <p className="mt-1.5 pl-7 text-xs text-red-400">오류 코드: {error}</p>
+              <p className="mt-1.5 pl-7 text-xs text-[#D98780]">오류 코드: {error}</p>
             )}
             {error === 'oauth_provider_error' && safeReason && (
-              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+              <p className="mt-0.5 pl-7 text-xs text-[#D98780]">상세 코드: {safeReason}</p>
             )}
             {error === 'exchange_failed' && safeReason && (
-              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+              <p className="mt-0.5 pl-7 text-xs text-[#D98780]">상세 코드: {safeReason}</p>
             )}
             {error === 'id_token_failed' && safeReason && (
-              <p className="mt-0.5 pl-7 text-xs text-red-400">상세 코드: {safeReason}</p>
+              <p className="mt-0.5 pl-7 text-xs text-[#D98780]">상세 코드: {safeReason}</p>
             )}
             {safeReason && REASON_MESSAGES[safeReason] && (
-              <p className="mt-2 pl-7 text-xs leading-relaxed text-red-500">
+              <p className="mt-2 pl-7 text-xs leading-relaxed text-[#C45B50]">
                 확인 필요: {REASON_MESSAGES[safeReason]}
               </p>
             )}
           </div>
         )}
 
-        {/* 소셜 로그인 */}
         <section aria-label="소셜 로그인">
-          <h2 className="mb-5 text-center text-sm font-semibold text-slate-700">
+          <h2 className="mb-5 text-center text-sm font-bold text-[#25344A]">
             소셜 계정으로 시작하기
           </h2>
           <SocialLoginButtons googleClientId={googleClientId} />
         </section>
 
-        {/* 의료 정보 안내 */}
-        <div className="mt-8 rounded-xl bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-700">
-          본 앱에서 제공하는 성장, 발달, 예방접종, 건강 정보는 일반적인 참고 정보입니다.
-          아이의 건강 상태, 질병, 발달 지연, 접종 가능 여부는 반드시 전문 의료진과 상담해 주세요.
+        <div className="mt-8">
+          <MedicalDisclaimer />
         </div>
 
-        <p className="mt-4 text-center text-xs text-slate-400">
+        <p className="mt-4 text-center text-xs text-[#8FA0B5]">
           로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
         </p>
-
-      </div>
-    </main>
+    </AppShell>
   )
 }

@@ -49,14 +49,14 @@ export default async function SleepPage() {
   const records = (recordsData ?? []) as Tables<'child_sleep_records'>[]
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="수면 기록" />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">수면 기록</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="babyroad-title">수면 기록</h1>
+            <p className="babyroad-subtitle">
               낮잠과 밤잠을 기록하고 아이의 수면 패턴을 확인해요.
             </p>
           </div>

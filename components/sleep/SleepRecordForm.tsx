@@ -149,7 +149,7 @@ export default function SleepRecordForm({ userId, childId }: SleepRecordFormProp
             id="sleepType"
             value={sleepType}
             onChange={(e) => setSleepType(e.target.value as SleepFormData['sleepType'])}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           >
             {SLEEP_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -169,7 +169,7 @@ export default function SleepRecordForm({ userId, childId }: SleepRecordFormProp
             type="datetime-local"
             value={sleepStart}
             onChange={(e) => setSleepStart(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.sleepStart && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.sleepStart}</p>
@@ -185,7 +185,7 @@ export default function SleepRecordForm({ userId, childId }: SleepRecordFormProp
             type="datetime-local"
             value={sleepEnd}
             onChange={(e) => setSleepEnd(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.sleepEnd && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.sleepEnd}</p>
@@ -206,7 +206,7 @@ export default function SleepRecordForm({ userId, childId }: SleepRecordFormProp
             placeholder="0"
             value={wakeCount}
             onChange={(e) => setWakeCount(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.wakeCount && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.wakeCount}</p>
@@ -223,7 +223,7 @@ export default function SleepRecordForm({ userId, childId }: SleepRecordFormProp
             placeholder="특이사항을 기록해요."
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input resize-none"
           />
           {fieldErrors.memo && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.memo}</p>

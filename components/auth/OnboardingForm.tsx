@@ -170,7 +170,7 @@ export default function OnboardingForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {errorMessage && (
-        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div role="alert" className="rounded-[1.25rem] border border-[#F4C8C1] bg-[#FFF0EF]/86 px-4 py-3 text-sm text-[#C45B50]">
           {errorMessage}
         </div>
       )}
@@ -186,7 +186,7 @@ export default function OnboardingForm({
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="사용할 닉네임을 입력해 주세요"
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+          className="babyroad-input"
           maxLength={20}
         />
         {errors.nickname && (
@@ -208,8 +208,8 @@ export default function OnboardingForm({
               }}
               className={`rounded-xl border py-3 text-sm font-medium transition-colors ${
                 status === option.value
-                  ? 'border-orange-400 bg-orange-50 text-orange-700'
-                  : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
+                  ? 'border-[#4FA99A] bg-[#EAF6F2] text-[#2F766E] shadow-sm'
+                  : 'border-[#D9E6DF] bg-white/80 text-[#6B7A90] hover:border-[#CFE3D8]'
               }`}
             >
               {option.label}
@@ -231,7 +231,7 @@ export default function OnboardingForm({
           placeholder={
             status === 'pregnancy' ? '태명을 입력해 주세요' : '아이 이름을 입력해 주세요'
           }
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+          className="babyroad-input"
           maxLength={30}
         />
         {errors.childName && (
@@ -250,8 +250,8 @@ export default function OnboardingForm({
               onClick={() => setGender(option.value)}
               className={`rounded-xl border py-2.5 text-sm font-medium transition-colors ${
                 gender === option.value
-                  ? 'border-orange-400 bg-orange-50 text-orange-700'
-                  : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
+                  ? 'border-[#4FA99A] bg-[#EAF6F2] text-[#2F766E] shadow-sm'
+                  : 'border-[#D9E6DF] bg-white/80 text-[#6B7A90] hover:border-[#CFE3D8]'
               }`}
             >
               {option.label}
@@ -270,14 +270,14 @@ export default function OnboardingForm({
           type="date"
           value={dateValue}
           onChange={(e) => setDateValue(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+          className="babyroad-input"
         />
         {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
       </div>
 
       {/* 출생 정보 — 출생 후일 때만, 선택 입력 */}
       {status === 'born' && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="rounded-[1.25rem] border border-[#E8EEE9] bg-white/58 p-4">
           <p className="mb-3 text-sm font-medium text-slate-700">
             출생 정보{' '}
             <span className="font-normal text-slate-400">(선택)</span>
@@ -299,7 +299,7 @@ export default function OnboardingForm({
                 step="0.01"
                 min="0"
                 max="10"
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                className="babyroad-input"
               />
             </div>
             <div>
@@ -318,7 +318,7 @@ export default function OnboardingForm({
                 step="0.1"
                 min="0"
                 max="100"
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                className="babyroad-input"
               />
             </div>
             <div>
@@ -337,7 +337,7 @@ export default function OnboardingForm({
                 step="0.1"
                 min="0"
                 max="60"
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                className="babyroad-input"
               />
             </div>
           </div>

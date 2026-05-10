@@ -6,7 +6,7 @@ import VaccinationUndoButton from './VaccinationUndoButton'
 
 const STATUS_CONFIG = {
   completed: { label: '완료', className: 'text-green-700 bg-green-50' },
-  available: { label: '접종 가능', className: 'text-orange-700 bg-orange-50' },
+  available: { label: '접종 가능', className: 'text-[#D77C5B] bg-[#FFF3E9]' },
   scheduled: { label: '예정', className: 'text-blue-700 bg-blue-50' },
   delayed: { label: '지연 가능성 있음', className: 'text-red-700 bg-red-50' },
 } as const
@@ -24,7 +24,7 @@ export default function VaccinationScheduleList({
 }: VaccinationScheduleListProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
+      <div className="rounded-[1.35rem] border border-white/70 bg-white/62 p-6 text-center shadow-[0_12px_32px_rgba(79,169,154,0.08)]">
         <p className="text-sm text-slate-500">예방접종 일정 정보가 없습니다.</p>
       </div>
     )
@@ -82,14 +82,14 @@ function VaccinationScheduleRow({
   const config = STATUS_CONFIG[item.uiStatus]
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[1.35rem] border border-[#E8EEE9] bg-white/85 p-4 shadow-[0_14px_38px_rgba(37,52,74,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <p className="text-sm font-semibold text-slate-900">{item.vaccineName}</p>
             <span className="text-xs text-slate-500">{item.doseLabel}</span>
             {item.isRequired && (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+              <span className="rounded-full bg-[#EAF6F2]/80 px-2 py-0.5 text-xs text-[#6B7A90]">
                 필수
               </span>
             )}

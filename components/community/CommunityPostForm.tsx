@@ -106,7 +106,7 @@ export default function CommunityPostForm({ userId, authorNickname }: CommunityP
             id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           >
             <option value="">카테고리 선택</option>
             {COMMUNITY_CATEGORIES.map((cat) => (
@@ -131,7 +131,7 @@ export default function CommunityPostForm({ userId, authorNickname }: CommunityP
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.title && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.title}</p>
@@ -149,7 +149,7 @@ export default function CommunityPostForm({ userId, authorNickname }: CommunityP
             value={content}
             onChange={(e) => setContent(e.target.value)}
             maxLength={2000}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input resize-none"
           />
           <p className="mt-1 text-right text-xs text-slate-400">{content.length}/2000</p>
           {fieldErrors.content && (

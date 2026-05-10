@@ -22,23 +22,23 @@ export default function GrowthSummaryCard({ child, latestRecord }: GrowthSummary
   })
 
   return (
-    <Card className="border-orange-100 bg-orange-50">
+    <Card variant="hero" className="border-white/70">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-orange-700">아이 요약</p>
+          <p className="text-xs font-semibold text-[#4FA99A]">아이 요약</p>
           <h2 className="mt-1 text-lg font-bold text-slate-900">{child.name}</h2>
           <p className="mt-1 text-sm text-slate-600">
             {ageLabel}
             {child.status === 'born' ? ` · ${GENDER_LABEL[child.gender]}` : ''}
           </p>
         </div>
-        <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
+        <div className="rounded-full bg-white/78 px-3 py-1 text-xs font-semibold text-[#D77C5B] shadow-sm">
           {child.status === 'pregnancy' ? '임신 중' : '출생 후'}
         </div>
       </div>
 
       {latestRecord ? (
-        <div className="mt-4 rounded-2xl bg-white p-3 shadow-sm">
+        <div className="mt-4 rounded-2xl bg-white/78 p-3 shadow-sm">
           <p className="text-xs font-medium text-slate-500">
             최신 기록 · {formatDate(latestRecord.record_date)}
           </p>
@@ -56,7 +56,7 @@ export default function GrowthSummaryCard({ child, latestRecord }: GrowthSummary
           </div>
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-orange-200 bg-white/70 p-3">
+        <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 p-3">
           <p className="text-sm text-slate-600">아직 저장된 성장 기록이 없어요.</p>
         </div>
       )}

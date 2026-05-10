@@ -53,7 +53,8 @@ export function formatDateShort(dateString: string): string {
 }
 
 export function toISODateString(date: Date = new Date()): string {
-  return date.toISOString().split('T')[0]
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 export function toLocalDateTimeString(date: Date = new Date()): string {

@@ -143,7 +143,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
         {message ? (
           <div
             role="status"
-            className="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700"
+            className="rounded-[1.25rem] border border-[#CFE3D8] bg-[#EAF6F2]/82 px-4 py-3 text-sm text-[#2F766E]"
           >
             {message}
           </div>
@@ -158,7 +158,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
             type="date"
             value={recordDate}
             onChange={(event) => setRecordDate(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.recordDate ? (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.recordDate}</p>
@@ -180,7 +180,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
               value={height}
               onChange={(event) => setHeight(event.target.value)}
               placeholder="예: 82.5"
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              className="babyroad-input"
             />
             {fieldErrors.height ? (
               <p className="mt-1 text-xs text-red-500">{fieldErrors.height}</p>
@@ -201,7 +201,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
               value={weight}
               onChange={(event) => setWeight(event.target.value)}
               placeholder="예: 10.2"
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              className="babyroad-input"
             />
             {fieldErrors.weight ? (
               <p className="mt-1 text-xs text-red-500">{fieldErrors.weight}</p>
@@ -226,7 +226,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
             value={headCircumference}
             onChange={(event) => setHeadCircumference(event.target.value)}
             placeholder="예: 46.0"
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.headCircumference ? (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.headCircumference}</p>
@@ -243,7 +243,7 @@ export default function GrowthRecordForm({ userId, childId }: GrowthRecordFormPr
             onChange={(event) => setMemo(event.target.value)}
             placeholder="특이사항이나 기억하고 싶은 내용을 적어 주세요."
             rows={3}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input resize-none"
           />
           {fieldErrors.memo ? (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.memo}</p>

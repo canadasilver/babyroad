@@ -50,14 +50,14 @@ export default async function HealthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="babyroad-page flex min-h-screen flex-col">
       <Header title="건강 기록" />
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <div className="mx-auto max-w-md space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">건강 기록</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="babyroad-title">건강 기록</h1>
+            <p className="babyroad-subtitle">
               체온, 증상, 병원 방문 기록을 남겨요.
             </p>
           </div>
@@ -70,8 +70,8 @@ export default async function HealthPage() {
               <HealthRecordList records={records} />
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-              <p className="text-sm text-slate-500">아이 정보를 먼저 등록해 주세요.</p>
+            <div className="babyroad-empty">
+              아이 정보를 먼저 등록해 주세요.
             </div>
           )}
 

@@ -164,7 +164,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             type="datetime-local"
             value={recordedAt}
             onChange={(e) => setRecordedAt(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.recordedAt && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.recordedAt}</p>
@@ -185,7 +185,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             placeholder="예: 37.5"
             value={temperature}
             onChange={(e) => setTemperature(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.temperature && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.temperature}</p>
@@ -202,7 +202,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             placeholder="예: 기침, 콧물, 발열"
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.symptoms && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.symptoms}</p>
@@ -219,7 +219,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             placeholder="예: 타이레놀 1/2정"
             value={medicine}
             onChange={(e) => setMedicine(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.medicine && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.medicine}</p>
@@ -236,7 +236,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             placeholder="예: 서울소아과"
             value={hospitalName}
             onChange={(e) => setHospitalName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input"
           />
           {fieldErrors.hospitalName && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.hospitalName}</p>
@@ -253,7 +253,7 @@ export default function HealthRecordForm({ userId, childId }: HealthRecordFormPr
             placeholder="추가 메모를 남겨요."
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+            className="babyroad-input resize-none"
           />
           {fieldErrors.memo && (
             <p className="mt-1 text-xs text-red-500">{fieldErrors.memo}</p>

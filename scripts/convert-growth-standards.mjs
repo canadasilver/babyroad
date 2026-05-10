@@ -1,0 +1,228 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { TextDecoder } from 'node:util'
+
+const PROJECT_ROOT = process.cwd()
+const DATA_DIR = path.join(PROJECT_ROOT, '자료')
+const OUTPUT_DIR = path.join(PROJECT_ROOT, 'supabase', 'seed')
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'growth_standard_percentiles.sql')
+const STANDARD_SOURCE = 'nhis_infant_growth_percentile_2017'
+
+const LMS_FILE_KEYWORD = 'LMS기준'
+const PERCENTILE_FILE_KEYWORD = '백분위수기준'
+
+const requiredLmsColumns = [
+  '영유아성장종류코드명',
+  '성별코드명',
+  '영유아성장도표시작월',
+  '영유아성장도표L값',
+  '영유아성장도표M값',
+  '영유아성장도표S값',
+]
+
+const metricMap = new Map([
+  ['키', 'height'],
+  ['몸무게', 'weight'],
+  ['머리둘레', 'head_circumference'],
+])
+
+const sexMap = new Map([
+  ['남아', 'male'],
+  ['여아', 'female'],
+])
+
+function readCsvText(filePath) {
+  const bytes = fs.readFileSync(filePath)
+  const text = new TextDecoder('windows-949').decode(bytes)
+  return text.replace(/^\uFEFF/, '')
+}
+
+function parseCsv(text) {
+  const rows = []
+  let row = []
+  let value = ''
+  let inQuotes = false
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i]
+    const next = text[i + 1]
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        value += '"'
+        i += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(value)
+      value = ''
+      continue
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') i += 1
+      row.push(value)
+      if (row.some((cell) => cell.trim() !== '')) rows.push(row)
+      row = []
+      value = ''
+      continue
+    }
+
+    value += char
+  }
+
+  if (value.length > 0 || row.length > 0) {
+    row.push(value)
+    if (row.some((cell) => cell.trim() !== '')) rows.push(row)
+  }
+
+  if (rows.length === 0) return []
+
+  const headers = rows[0].map((header) => header.trim())
+  return rows.slice(1).map((cells) =>
+    Object.fromEntries(headers.map((header, index) => [header, (cells[index] ?? '').trim()]))
+  )
+}
+
+function parseNumber(value, columnName) {
+  if (value === '') return null
+  const number = Number(value)
+  if (!Number.isFinite(number)) {
+    throw new Error(`${columnName} 값을 숫자로 변환할 수 없습니다: ${value}`)
+  }
+  return number
+}
+
+function findCsvFile(keyword) {
+  const files = fs.readdirSync(DATA_DIR).filter((name) => name.endsWith('.csv'))
+  const fileName = files.find((name) => name.includes(keyword))
+
+  if (!fileName) {
+    throw new Error(`자료 폴더에서 "${keyword}" CSV 파일을 찾을 수 없습니다.`)
+  }
+
+  return path.join(DATA_DIR, fileName)
+}
+
+function assertColumns(row, columns, fileLabel) {
+  const headers = Object.keys(row ?? {})
+  const missingColumns = columns.filter((column) => !headers.includes(column))
+
+  if (missingColumns.length > 0) {
+    throw new Error(`${fileLabel} 필수 컬럼이 없습니다: ${missingColumns.join(', ')}`)
+  }
+}
+
+function toSqlNumber(value) {
+  return value === null ? 'null' : String(value)
+}
+
+function escapeSql(value) {
+  return value.replaceAll("'", "''")
+}
+
+function main() {
+  const lmsPath = findCsvFile(LMS_FILE_KEYWORD)
+  const percentilePath = findCsvFile(PERCENTILE_FILE_KEYWORD)
+
+  const lmsRows = parseCsv(readCsvText(lmsPath))
+  const percentileRows = parseCsv(readCsvText(percentilePath))
+
+  assertColumns(lmsRows[0], requiredLmsColumns, path.basename(lmsPath))
+
+  const percentileColumns = Object.keys(percentileRows[0] ?? {})
+  const rows = []
+  const skippedMetrics = new Set()
+
+  for (const row of lmsRows) {
+    const metric = metricMap.get(row['영유아성장종류코드명'])
+    const sex = sexMap.get(row['성별코드명'])
+
+    if (!metric) {
+      skippedMetrics.add(row['영유아성장종류코드명'])
+      continue
+    }
+
+    if (!sex) {
+      throw new Error(`성별 매핑을 확인할 수 없습니다: ${row['성별코드명']}`)
+    }
+
+    const ageMonth = parseNumber(row['영유아성장도표시작월'], '영유아성장도표시작월')
+    const lValue = parseNumber(row['영유아성장도표L값'], '영유아성장도표L값')
+    const mValue = parseNumber(row['영유아성장도표M값'], '영유아성장도표M값')
+    const sValue = parseNumber(row['영유아성장도표S값'], '영유아성장도표S값')
+
+    if (ageMonth === null || mValue === null) {
+      throw new Error('월령 또는 LMS M 값이 비어 있어 p50을 만들 수 없습니다.')
+    }
+
+    rows.push({
+      standardSource: STANDARD_SOURCE,
+      sex,
+      metric,
+      ageMonth,
+      p3: null,
+      p15: null,
+      p50: mValue,
+      p85: null,
+      p97: null,
+      lValue,
+      mValue,
+      sValue,
+    })
+  }
+
+  rows.sort((a, b) =>
+    a.sex.localeCompare(b.sex) ||
+    a.metric.localeCompare(b.metric) ||
+    a.ageMonth - b.ageMonth
+  )
+
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true })
+
+  const sqlValues = rows.map((row) =>
+    `('${escapeSql(row.standardSource)}', '${row.sex}', '${row.metric}', ${row.ageMonth}, ${toSqlNumber(row.p3)}, ${toSqlNumber(row.p15)}, ${toSqlNumber(row.p50)}, ${toSqlNumber(row.p85)}, ${toSqlNumber(row.p97)}, ${toSqlNumber(row.lValue)}, ${toSqlNumber(row.mValue)}, ${toSqlNumber(row.sValue)})`
+  )
+
+  const sql = `-- Generated by scripts/convert-growth-standards.mjs
+-- Source: ${path.basename(lmsPath)}
+-- Encoding: windows-949 / CP949
+-- Percentile range file checked: ${path.basename(percentilePath)}
+-- Percentile file columns: ${percentileColumns.join(', ')}
+-- p50 is mapped from the actual LMS M value in the source CSV.
+-- p3/p15/p85/p97 are null because the provided percentile CSV contains Z ranges, not direct measurement values.
+
+insert into public.growth_standard_percentiles
+  (standard_source, sex, metric, age_month, p3, p15, p50, p85, p97, l_value, m_value, s_value)
+values
+${sqlValues.join(',\n')}
+on conflict (standard_source, sex, metric, age_month) do update
+set
+  p3 = excluded.p3,
+  p15 = excluded.p15,
+  p50 = excluded.p50,
+  p85 = excluded.p85,
+  p97 = excluded.p97,
+  l_value = excluded.l_value,
+  m_value = excluded.m_value,
+  s_value = excluded.s_value;
+`
+
+  fs.writeFileSync(OUTPUT_FILE, sql, 'utf8')
+
+  console.log(JSON.stringify({
+    lmsFile: path.basename(lmsPath),
+    percentileFile: path.basename(percentilePath),
+    lmsRows: lmsRows.length,
+    percentileRows: percentileRows.length,
+    outputRows: rows.length,
+    skippedMetrics: Array.from(skippedMetrics),
+    outputFile: path.relative(PROJECT_ROOT, OUTPUT_FILE),
+  }, null, 2))
+}
+
+main()

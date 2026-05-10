@@ -1,4 +1,5 @@
 import Card from '@/components/common/Card'
+import ChildAvatar from '@/components/child/ChildAvatar'
 import { getAgeLabel } from '@/lib/date'
 import type { Child } from '@/types/child'
 
@@ -12,13 +13,6 @@ const genderLabel: Record<string, string> = {
   unknown: '미정',
 }
 
-const childIcon: Record<string, string> = {
-  pregnancy: '🤰',
-  male: '👦',
-  female: '👧',
-  unknown: '👶',
-}
-
 export default function ChildProfileCard({ child }: ChildProfileCardProps) {
   const ageLabel = getAgeLabel({
     status: child.status,
@@ -26,19 +20,18 @@ export default function ChildProfileCard({ child }: ChildProfileCardProps) {
     dueDate: child.due_date,
   })
 
-  const icon =
-    child.status === 'pregnancy'
-      ? childIcon.pregnancy
-      : childIcon[child.gender] ?? childIcon.unknown
-
   return (
     <Card className="flex items-center gap-4">
-      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 text-2xl">
-        {icon}
-      </div>
+      <ChildAvatar
+        photoUrl={child.profile_image_url}
+        gender={child.gender}
+        status={child.status}
+        size="md"
+        className="bg-[#EAF6F2] shadow-sm"
+      />
       <div className="min-w-0 flex-1">
-        <h2 className="truncate text-base font-semibold text-slate-900">{child.name}</h2>
-        <p className="text-sm text-slate-500">
+        <h2 className="truncate text-base font-bold text-[#25344A]">{child.name}</h2>
+        <p className="text-sm text-[#6B7A90]">
           {ageLabel}
           {child.status === 'born' && ` · ${genderLabel[child.gender]}`}
         </p>

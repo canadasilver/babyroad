@@ -63,9 +63,9 @@ export default function GrowthRecordList({ records }: GrowthRecordListProps) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+    <div className="rounded-xl bg-[#EAF6F2]/50 px-3 py-2">
+      <p className="text-xs text-[#6B7A90]">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-[#25344A]">{value}</p>
     </div>
   )
 }

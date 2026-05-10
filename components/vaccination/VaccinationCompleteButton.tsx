@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { toISODateString } from '@/lib/date'
 import Button from '@/components/common/Button'
 
 interface VaccinationCompleteButtonProps {
@@ -30,7 +31,7 @@ export default function VaccinationCompleteButton({
 
     try {
       const supabase = createClient()
-      const today = new Date().toISOString().split('T')[0]
+      const today = toISODateString()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase.from('child_vaccination_records') as any).insert({

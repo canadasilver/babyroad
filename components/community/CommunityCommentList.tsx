@@ -14,7 +14,7 @@ export default function CommunityCommentList({ comments, userId }: CommunityComm
         댓글 {comments.length > 0 ? `${comments.length}개` : ''}
       </h3>
       {comments.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-6 text-center">
+        <div className="rounded-[1.25rem] border border-white/70 bg-white/62 py-6 text-center">
           <p className="text-sm text-slate-500">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</p>
         </div>
       ) : (
@@ -36,7 +36,7 @@ function CommentRow({
   userId: string | null
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <div className="rounded-[1.25rem] border border-[#E8EEE9] bg-white/82 px-4 py-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
