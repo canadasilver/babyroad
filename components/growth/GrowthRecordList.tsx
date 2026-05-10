@@ -1,6 +1,5 @@
 import Card from '@/components/common/Card'
-import { formatDate } from '@/lib/date'
-import { formatNumber } from '@/lib/utils'
+import GrowthRecordItem from '@/components/growth/GrowthRecordItem'
 import type { ChildGrowthRecord } from '@/types/child'
 
 interface GrowthRecordListProps {
@@ -23,49 +22,10 @@ export default function GrowthRecordList({ records }: GrowthRecordListProps) {
       ) : (
         <div className="space-y-3">
           {records.map((record) => (
-            <Card key={record.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {formatDate(record.record_date)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    저장일 {formatDate(record.created_at)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <Metric label="키" value={`${formatNumber(record.height)} cm`} />
-                <Metric label="몸무게" value={`${formatNumber(record.weight, 2)} kg`} />
-                <Metric
-                  label="머리둘레"
-                  value={
-                    record.head_circumference === null
-                      ? '-'
-                      : `${formatNumber(record.head_circumference)} cm`
-                  }
-                />
-              </div>
-
-              {record.memo ? (
-                <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-600">
-                  {record.memo}
-                </p>
-              ) : null}
-            </Card>
+            <GrowthRecordItem key={record.id} record={record} />
           ))}
         </div>
       )}
     </section>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-[#EAF6F2]/50 px-3 py-2">
-      <p className="text-xs text-[#6B7A90]">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-[#25344A]">{value}</p>
-    </div>
   )
 }
