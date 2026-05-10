@@ -174,6 +174,26 @@ export default async function MypagePage() {
             <LogoutButton className="w-full justify-center rounded-xl border border-[#D9E6DF] py-3 text-center" />
           </Card>
 
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-slate-900">서비스 정보</h3>
+            <div className="space-y-1">
+              <a
+                href="/privacy"
+                className="flex items-center justify-between rounded-2xl px-3 py-3 hover:bg-[#EAF6F2]/70"
+              >
+                <span className="text-sm font-medium text-[#25344A]">개인정보처리방침</span>
+                <span className="text-slate-400">›</span>
+              </a>
+              <a
+                href="/terms"
+                className="flex items-center justify-between rounded-2xl px-3 py-3 hover:bg-[#EAF6F2]/70"
+              >
+                <span className="text-sm font-medium text-[#25344A]">이용약관</span>
+                <span className="text-slate-400">›</span>
+              </a>
+            </div>
+          </Card>
+
           <MedicalDisclaimer />
         </div>
       </main>
