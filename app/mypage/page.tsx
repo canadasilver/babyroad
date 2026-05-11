@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildContext } from '@/lib/children'
+import CollaboratorList from '@/components/child/CollaboratorList'
+import type { CollaboratorWithProfile } from '@/types/child'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import Card from '@/components/common/Card'
@@ -31,21 +33,57 @@ export default async function MypagePage() {
   const otherChildren = allChildren.filter((c) => c.id !== activeChild?.id)
 
   let latestGrowthRecord: ChildGrowthRecord | null = null
+  let collaborators: CollaboratorWithProfile[] = []
 
   if (activeChild) {
     const supabase = await createClient()
-    const { data: latestGrowthData } = await supabase
-      .from('child_growth_records')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('child_id', activeChild.id)
-      .is('deleted_at', null)
-      .order('record_date', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
 
-    latestGrowthRecord = latestGrowthData as ChildGrowthRecord | null
+    const [growthResult, collabResult] = await Promise.all([
+      supabase
+        .from('child_growth_records')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('child_id', activeChild.id)
+        .is('deleted_at', null)
+        .order('record_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('child_collaborators')
+        .select('id, user_id, role, status, accepted_at')
+        .eq('child_id', activeChild.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true }),
+    ])
+
+    latestGrowthRecord = growthResult.data as ChildGrowthRecord | null
+
+    type CollabRow = { id: string; user_id: string; role: string; status: string; accepted_at: string | null }
+    const collabRows = (collabResult.data ?? []) as CollabRow[]
+    const collabUserIds = collabRows.map((c) => c.user_id)
+
+    if (collabUserIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, nickname, email')
+        .in('user_id', collabUserIds)
+
+      type ProfileRow = { user_id: string; nickname: string; email: string | null }
+      const profileMap = new Map((profilesData ?? [] as ProfileRow[]).map((p) => [(p as ProfileRow).user_id, p as ProfileRow]))
+
+      collaborators = collabRows.map((c) => {
+        const p = profileMap.get(c.user_id)
+        return {
+          id:          c.id,
+          user_id:     c.user_id,
+          role:        c.role as CollaboratorWithProfile['role'],
+          status:      c.status as CollaboratorWithProfile['status'],
+          accepted_at: c.accepted_at,
+          profile:     p ? { nickname: p.nickname, email: p.email } : null,
+        }
+      })
+    }
   }
 
   return (
@@ -122,6 +160,15 @@ export default async function MypagePage() {
                 아이 정보 등록하기
               </Link>
             </Card>
+          )}
+
+          {/* 공동 보호자 */}
+          {activeChild && (
+            <CollaboratorList
+              collaborators={collaborators}
+              currentUserId={user.id}
+              childId={activeChild.id}
+            />
           )}
 
           {/* 다른 아이 목록 */}

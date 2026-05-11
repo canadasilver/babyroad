@@ -587,6 +587,77 @@ export interface Database {
         }
         Relationships: []
       }
+      child_collaborators: {
+        Row: {
+          id: string
+          child_id: string
+          user_id: string
+          role: 'owner' | 'editor' | 'viewer'
+          status: 'pending' | 'active' | 'revoked'
+          invited_by: string | null
+          accepted_at: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          child_id: string
+          user_id: string
+          role?: 'owner' | 'editor' | 'viewer'
+          status?: 'pending' | 'active' | 'revoked'
+          invited_by?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          role?: 'owner' | 'editor' | 'viewer'
+          status?: 'pending' | 'active' | 'revoked'
+          invited_by?: string | null
+          accepted_at?: string | null
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      child_invites: {
+        Row: {
+          id: string
+          child_id: string
+          invited_by: string
+          invite_token: string
+          role: 'editor' | 'viewer'
+          status: 'pending' | 'accepted' | 'expired' | 'revoked'
+          expires_at: string
+          accepted_by: string | null
+          accepted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          child_id: string
+          invited_by: string
+          invite_token: string
+          role?: 'editor' | 'viewer'
+          status?: 'pending' | 'accepted' | 'expired' | 'revoked'
+          expires_at: string
+          accepted_by?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          role?: 'editor' | 'viewer'
+          status?: 'pending' | 'accepted' | 'expired' | 'revoked'
+          accepted_by?: string | null
+          accepted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           id: string

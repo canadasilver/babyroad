@@ -111,12 +111,10 @@ export default function ChildNewForm({ userId }: { userId: string }) {
       return
     }
 
+    const now = new Date().toISOString()
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        active_child_id: insertedChild.id,
-        updated_at: new Date().toISOString(),
-      } as never)
+      .update({ active_child_id: insertedChild.id, updated_at: now } as never)
       .eq('user_id', userId)
       .is('deleted_at', null)
 
@@ -125,6 +123,14 @@ export default function ChildNewForm({ userId }: { userId: string }) {
       setIsSaving(false)
       return
     }
+
+    // 아이 생성자를 owner collaborator로 등록
+    await supabase
+      .from('child_collaborators')
+      .upsert(
+        { child_id: insertedChild.id, user_id: userId, role: 'owner', status: 'active', accepted_at: now } as never,
+        { onConflict: 'child_id,user_id' }
+      )
 
     router.refresh()
     router.replace('/mypage')

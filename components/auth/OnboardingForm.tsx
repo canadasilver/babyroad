@@ -163,15 +163,23 @@ export default function OnboardingForm({
         return
       }
 
+      const childId = (insertedChild as { id: string }).id
+      const now = new Date().toISOString()
+
       // 첫 아이를 active_child_id로 설정
       await supabase
         .from('profiles')
-        .update({
-          active_child_id: (insertedChild as { id: string }).id,
-          updated_at: new Date().toISOString(),
-        } as never)
+        .update({ active_child_id: childId, updated_at: now } as never)
         .eq('user_id', userId)
         .is('deleted_at', null)
+
+      // 아이 생성자를 owner collaborator로 등록
+      await supabase
+        .from('child_collaborators')
+        .upsert(
+          { child_id: childId, user_id: userId, role: 'owner', status: 'active', accepted_at: now } as never,
+          { onConflict: 'child_id,user_id' }
+        )
 
       router.replace('/dashboard')
     } catch {

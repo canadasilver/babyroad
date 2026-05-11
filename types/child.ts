@@ -41,6 +41,26 @@ export type ChildGrowthRecord = {
 }
 
 export type ChildGrowthRecordInsert = Database['public']['Tables']['child_growth_records']['Insert']
+
+export type CollaboratorRole = 'owner' | 'editor' | 'viewer'
+export type CollaboratorStatus = 'pending' | 'active' | 'revoked'
+export type InviteRole = 'editor' | 'viewer'
+export type InviteStatus = 'pending' | 'accepted' | 'expired' | 'revoked'
+
+export type ChildCollaborator = Database['public']['Tables']['child_collaborators']['Row']
+export type ChildInvite = Database['public']['Tables']['child_invites']['Row']
+
+export type CollaboratorWithProfile = {
+  id: string
+  user_id: string
+  role: CollaboratorRole
+  status: CollaboratorStatus
+  accepted_at: string | null
+  profile: {
+    nickname: string
+    email: string | null
+  } | null
+}
 export type ChildGrowthRecordUpdate = Database['public']['Tables']['child_growth_records']['Update']
 export type ChildFeedingRecord = Database['public']['Tables']['child_feeding_records']['Row']
 export type ChildSleepRecord = Database['public']['Tables']['child_sleep_records']['Row']

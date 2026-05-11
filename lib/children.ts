@@ -9,10 +9,13 @@ type ProfileWithActiveChild = Pick<Tables<'profiles'>, 'active_child_id'>
 
 export async function getChildrenForUser(userId: string): Promise<Child[]> {
   const supabase = await createClient()
+  // RLS policies (children_select_own + children_select_collaborator) filter results:
+  // returns both owned children AND children this user is an active collaborator on.
+  // The userId param is kept for callers that pass it but is not needed in the query.
+  void userId
   const { data } = await supabase
     .from('children')
     .select(CHILD_SELECT_COLUMNS)
-    .eq('user_id', userId)
     .is('deleted_at', null)
     .order('created_at', { ascending: true })
 
