@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -9,7 +10,6 @@ import ChildSummaryCard from '@/components/child/ChildSummaryCard'
 import FeedingSummaryCard from '@/components/feeding/FeedingSummaryCard'
 import FeedingRecordForm from '@/components/feeding/FeedingRecordForm'
 import FeedingRecordList from '@/components/feeding/FeedingRecordList'
-import type { Child } from '@/types/child'
 import type { Tables } from '@/types/database'
 
 export const metadata: Metadata = {
@@ -23,19 +23,10 @@ export default async function FeedingPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const supabase = await createClient()
-
-  const { data: childrenData } = await supabase
-    .from('children')
-    .select('*')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const children = (childrenData ?? []) as Child[]
-  const child = children[0] ?? null
-
+  const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
+
+  const supabase = await createClient()
 
   const { data: recordsData } = await supabase
     .from('child_feeding_records')

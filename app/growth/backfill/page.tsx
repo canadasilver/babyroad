@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import MedicalDisclaimer from '@/components/common/MedicalDisclaimer'
 import BackfillForm, { type BackfillSectionConfig } from '@/components/growth/BackfillForm'
 import { getVaccinationScheduledDate, toISODateString } from '@/lib/date'
-import type { Child } from '@/types/child'
 
 export const metadata: Metadata = {
   title: '이전 성장 기록 추가 | BabyRoad',
@@ -20,16 +20,7 @@ export default async function GrowthBackfillPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const supabase = await createClient()
-  const { data: children } = await supabase
-    .from('children')
-    .select('*')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const childList = (children ?? []) as Child[]
-  const child = childList[0] ?? null
+  const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
   if (!child.birth_date) redirect('/growth')
 

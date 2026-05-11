@@ -152,12 +152,26 @@ export default function OnboardingForm({
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: childError } = await supabase.from('children').insert(childData as any)
+      const { data: insertedChild, error: childError } = await supabase
+        .from('children')
+        .insert(childData as any)
+        .select('id')
+        .single()
 
-      if (childError) {
+      if (childError || !insertedChild) {
         setErrorMessage('아이 정보 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.')
         return
       }
+
+      // 첫 아이를 active_child_id로 설정
+      await supabase
+        .from('profiles')
+        .update({
+          active_child_id: (insertedChild as { id: string }).id,
+          updated_at: new Date().toISOString(),
+        } as never)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
 
       router.replace('/dashboard')
     } catch {

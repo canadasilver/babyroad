@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -18,7 +19,7 @@ import {
   toGrowthStandardSeries,
   type GrowthStandardPercentileRow,
 } from '@/lib/growth-report'
-import type { Child, ChildGrowthRecord } from '@/types/child'
+import type { ChildGrowthRecord } from '@/types/child'
 
 export const metadata: Metadata = {
   title: '우리 아이 성장 리포트 | BabyRoad',
@@ -33,19 +34,10 @@ export default async function GrowthReportPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const supabase = await createClient()
-  const { data: childrenData } = await supabase
-    .from('children')
-    .select(
-      'id, user_id, name, nickname, gender, status, due_date, birth_date, birth_weight, birth_height, birth_head_circumference, profile_image_url, is_premature, memo, created_at, updated_at, deleted_at'
-    )
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const children = (childrenData ?? []) as Child[]
-  const child = children[0] ?? null
+  const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
+
+  const supabase = await createClient()
 
   const { data: recordsData } = await supabase
     .from('child_growth_records')

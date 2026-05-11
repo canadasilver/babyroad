@@ -1,4 +1,4 @@
-import { formatDateShort } from '@/lib/date'
+import { formatChildAge, formatDateShort, getAgeInMonthsAtDate } from '@/lib/date'
 import type { Database } from '@/types/database'
 import type { Child, ChildGrowthRecord } from '@/types/child'
 
@@ -36,27 +36,10 @@ export type GrowthStandardPercentileRow =
 export const EMPTY_GROWTH_STANDARD_SERIES: GrowthStandardSeries[] = []
 export const GROWTH_STANDARD_SOURCE = 'nhis_infant_growth_percentile_2017'
 
-
-export function getAgeInMonthsAtDate(birthDate: string, targetDate: string): number {
-  const birth = new Date(birthDate)
-  const target = new Date(targetDate)
-  const yearDiff = target.getFullYear() - birth.getFullYear()
-  const monthDiff = target.getMonth() - birth.getMonth()
-  const beforeBirthDayInMonth = target.getDate() < birth.getDate() ? 1 : 0
-
-  return Math.max(0, yearDiff * 12 + monthDiff - beforeBirthDayInMonth)
-}
-
 export function getChildAgeLabelForReport(child: Child): string {
   if (child.status === 'pregnancy') return '임신 중'
   if (!child.birth_date) return '개월 수 미입력'
-
-  const months = getAgeInMonthsAtDate(child.birth_date, new Date().toISOString())
-  if (months < 12) return `${months}개월`
-
-  const years = Math.floor(months / 12)
-  const remainingMonths = months % 12
-  return remainingMonths === 0 ? `${years}세` : `${years}세 ${remainingMonths}개월`
+  return formatChildAge(child.birth_date)
 }
 
 export function toGrowthChartPoints(

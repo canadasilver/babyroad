@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -17,7 +18,7 @@ import {
   getAgeInMonths,
 } from '@/lib/date'
 import { formatNumber } from '@/lib/utils'
-import type { Child, ChildGrowthRecord } from '@/types/child'
+import type { ChildGrowthRecord } from '@/types/child'
 import type { Tables } from '@/types/database'
 
 const FEEDING_TYPE_LABEL: Record<string, string> = {
@@ -60,18 +61,8 @@ export default async function DashboardPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
+  const child = await getActiveChildForUser(user.id, profile)
   const supabase = await createClient()
-  const { data: children } = await supabase
-    .from('children')
-    .select(
-      'id, user_id, name, nickname, gender, status, due_date, birth_date, birth_weight, birth_height, birth_head_circumference, profile_image_url, is_premature, memo, created_at, updated_at, deleted_at'
-    )
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const childList = (children ?? []) as Child[]
-  const child = childList[0] ?? null
 
   let latestGrowthRecord: ChildGrowthRecord | null = null
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null

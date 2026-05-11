@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -9,7 +10,6 @@ import MedicalDisclaimer from '@/components/common/MedicalDisclaimer'
 import HealthSummaryCard from '@/components/health/HealthSummaryCard'
 import HealthRecordForm from '@/components/health/HealthRecordForm'
 import HealthRecordList from '@/components/health/HealthRecordList'
-import type { Child } from '@/types/child'
 import type { Tables } from '@/types/database'
 
 export const metadata: Metadata = {
@@ -23,31 +23,20 @@ export default async function HealthPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
+  const child = await getActiveChildForUser(user.id, profile)
+  if (!child) redirect('/onboarding')
+
   const supabase = await createClient()
-  const { data: children } = await supabase
-    .from('children')
+  const { data } = await supabase
+    .from('child_health_records')
     .select('*')
     .eq('user_id', user.id)
+    .eq('child_id', child.id)
     .is('deleted_at', null)
-    .order('created_at', { ascending: true })
+    .order('recorded_at', { ascending: false })
+    .limit(20)
 
-  const childList = (children ?? []) as Child[]
-  const child = childList[0] ?? null
-
-  let records: Tables<'child_health_records'>[] = []
-
-  if (child) {
-    const { data } = await supabase
-      .from('child_health_records')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('child_id', child.id)
-      .is('deleted_at', null)
-      .order('recorded_at', { ascending: false })
-      .limit(20)
-
-    records = (data ?? []) as Tables<'child_health_records'>[]
-  }
+  const records = (data ?? []) as Tables<'child_health_records'>[]
 
   return (
     <div className="babyroad-page flex min-h-screen flex-col">
@@ -62,18 +51,10 @@ export default async function HealthPage() {
             </p>
           </div>
 
-          {child ? (
-            <>
-              <ChildSummaryCard child={child} />
-              <HealthSummaryCard records={records} />
-              <HealthRecordForm userId={user.id} childId={child.id} />
-              <HealthRecordList records={records} />
-            </>
-          ) : (
-            <div className="babyroad-empty">
-              아이 정보를 먼저 등록해 주세요.
-            </div>
-          )}
+          <ChildSummaryCard child={child} />
+          <HealthSummaryCard records={records} />
+          <HealthRecordForm userId={user.id} childId={child.id} />
+          <HealthRecordList records={records} />
 
           <MedicalDisclaimer />
         </div>

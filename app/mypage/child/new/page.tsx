@@ -1,45 +1,36 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
-import { getActiveChildForUser } from '@/lib/children'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import AppShell from '@/components/ui/AppShell'
 import AppCard from '@/components/ui/AppCard'
 import SectionHeader from '@/components/ui/SectionHeader'
-import ChildEditForm from '@/components/child/ChildEditForm'
+import ChildNewForm from '@/components/child/ChildNewForm'
 
 export const metadata: Metadata = {
-  title: '아이 정보 수정 | BabyRoad',
+  title: '아이 추가 | BabyRoad',
 }
 
-export default async function ChildEditPage() {
+export default async function ChildNewPage() {
   const user = await getAuthUser()
   if (!user) redirect('/login')
 
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const child = await getActiveChildForUser(user.id, profile)
-  if (!child) redirect('/onboarding')
-
   return (
     <div className="babyroad-page flex min-h-screen flex-col">
-      <Header title="아이 정보 수정" showBack />
+      <Header title="아이 추가" showBack />
 
       <AppShell className="flex-1" contentClassName="space-y-5" withBottomNavPadding>
         <SectionHeader
-          title="아이 정보 수정"
-          description="이름, 성별, 생년월일을 정확하게 관리해 성장 리포트를 더 자연스럽게 확인해요."
+          title="아이 추가하기"
+          description="첫째, 둘째, 쌍둥이도 각각 따로 기록할 수 있어요."
         />
 
         <AppCard variant="hero" padding="lg">
-          <div className="mb-5 rounded-[1.25rem] border border-white/70 bg-white/58 px-4 py-3">
-            <p className="text-xs font-semibold text-[#4FA99A]">현재 등록된 아이</p>
-            <p className="mt-1 text-lg font-black text-[#25344A]">{child.name}</p>
-          </div>
-
-          <ChildEditForm userId={user.id} child={child} />
+          <ChildNewForm userId={user.id} />
         </AppCard>
       </AppShell>
 

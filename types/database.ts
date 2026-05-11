@@ -16,6 +16,7 @@ export interface Database {
           nickname: string
           email: string | null
           avatar_url: string | null
+          active_child_id: string | null
           provider: string | null
           role: 'user' | 'admin'
           created_at: string
@@ -28,6 +29,7 @@ export interface Database {
           nickname: string
           email?: string | null
           avatar_url?: string | null
+          active_child_id?: string | null
           provider?: string | null
           role?: 'user' | 'admin'
           created_at?: string
@@ -38,6 +40,7 @@ export interface Database {
           nickname?: string
           email?: string | null
           avatar_url?: string | null
+          active_child_id?: string | null
           provider?: string | null
           role?: 'user' | 'admin'
           updated_at?: string

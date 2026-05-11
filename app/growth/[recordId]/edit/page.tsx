@@ -1,11 +1,12 @@
 import { redirect, notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import GrowthEditForm from '@/components/growth/GrowthEditForm'
-import type { Child, ChildGrowthRecord } from '@/types/child'
+import type { ChildGrowthRecord } from '@/types/child'
 
 export const metadata: Metadata = {
   title: '성장 기록 수정 | BabyRoad',
@@ -24,19 +25,10 @@ export default async function GrowthEditPage({ params }: PageProps) {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const supabase = await createClient()
-
-  const { data: children } = await supabase
-    .from('children')
-    .select(
-      'id, user_id, name, nickname, gender, status, due_date, birth_date, birth_weight, birth_height, birth_head_circumference, profile_image_url, is_premature, memo, created_at, updated_at, deleted_at'
-    )
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const child = ((children ?? []) as Child[])[0] ?? null
+  const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
+
+  const supabase = await createClient()
 
   const { data: recordData } = await supabase
     .from('child_growth_records')

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
+import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -8,7 +9,6 @@ import AppCard from '@/components/ui/AppCard'
 import EmptyState from '@/components/ui/EmptyState'
 import ChildAvatar from '@/components/child/ChildAvatar'
 import { getAgeInMonths } from '@/lib/date'
-import type { Child } from '@/types/child'
 import type { Tables } from '@/types/database'
 
 export const metadata: Metadata = {
@@ -34,16 +34,10 @@ export default async function DevelopmentPage() {
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const supabase = await createClient()
-  const { data: childrenData } = await supabase
-    .from('children')
-    .select('*')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-
-  const child = ((childrenData ?? []) as Child[])[0] ?? null
+  const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
+
+  const supabase = await createClient()
 
   const ageInMonths = child.birth_date ? getAgeInMonths(child.birth_date) : null
   let guide: Tables<'development_guides'> | null = null
@@ -150,6 +144,7 @@ export default async function DevelopmentPage() {
               {/* 출처 안내 */}
               {(guide.source_summary || guide.source_links.length > 0) && (
                 <AppCard className="border-[#CFE3D8] bg-[#F6FAFE]/80">
+                  <h4 className="mb-2 text-sm font-bold text-[#25344A]">참고 자료</h4>
                   {guide.source_summary && (
                     <p className="text-xs leading-relaxed text-[#5A7A8A]">{guide.source_summary}</p>
                   )}

@@ -1,27 +1,45 @@
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
-import { getActiveChildForUser } from '@/lib/children'
+import { createClient } from '@/lib/supabase/server'
+import { CHILD_SELECT_COLUMNS } from '@/lib/children'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import AppShell from '@/components/ui/AppShell'
 import AppCard from '@/components/ui/AppCard'
 import SectionHeader from '@/components/ui/SectionHeader'
 import ChildEditForm from '@/components/child/ChildEditForm'
+import type { Child } from '@/types/child'
 
 export const metadata: Metadata = {
   title: '아이 정보 수정 | BabyRoad',
 }
 
-export default async function ChildEditPage() {
+interface PageProps {
+  params: Promise<{ childId: string }>
+}
+
+export default async function ChildIdEditPage({ params }: PageProps) {
+  const { childId } = await params
+
   const user = await getAuthUser()
   if (!user) redirect('/login')
 
   const profile = await getProfile(user.id)
   if (!profile) redirect('/onboarding')
 
-  const child = await getActiveChildForUser(user.id, profile)
-  if (!child) redirect('/onboarding')
+  const supabase = await createClient()
+  const { data: childData } = await supabase
+    .from('children')
+    .select(CHILD_SELECT_COLUMNS)
+    .eq('id', childId)
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (!childData) notFound()
+
+  const child = childData as Child
 
   return (
     <div className="babyroad-page flex min-h-screen flex-col">
@@ -35,7 +53,7 @@ export default async function ChildEditPage() {
 
         <AppCard variant="hero" padding="lg">
           <div className="mb-5 rounded-[1.25rem] border border-white/70 bg-white/58 px-4 py-3">
-            <p className="text-xs font-semibold text-[#4FA99A]">현재 등록된 아이</p>
+            <p className="text-xs font-semibold text-[#4FA99A]">수정 중인 아이</p>
             <p className="mt-1 text-lg font-black text-[#25344A]">{child.name}</p>
           </div>
 
