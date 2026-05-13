@@ -71,6 +71,9 @@ export default async function DashboardPage() {
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
   let latestSleepRecord: Tables<'child_sleep_records'> | null = null
   let latestHealthRecord: Tables<'child_health_records'> | null = null
+  let latestDiaperRecord: Tables<'child_diaper_records'> | null = null
+  let todayDiaperUrine = 0
+  let todayDiaperStool = 0
   let latestCommunityPosts: Tables<'community_posts'>[] = []
   let developmentGuide: Tables<'development_guides'> | null = null
   let childAgeInMonths: number | null = null
@@ -82,7 +85,12 @@ export default async function DashboardPage() {
   } | null = null
 
   if (child) {
-    const [growthResult, feedingResult, sleepResult, healthResult, vaccineResult, scheduleResult, recordResult] =
+    const todayStartKST = (() => {
+      const kstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
+      return `${kstNow.toISOString().split('T')[0]}T00:00:00+09:00`
+    })()
+
+    const [growthResult, feedingResult, sleepResult, healthResult, diaperResult, diaperTodayResult, vaccineResult, scheduleResult, recordResult] =
       await Promise.all([
         supabase
           .from('child_growth_records')
@@ -117,6 +125,20 @@ export default async function DashboardPage() {
           .order('recorded_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from('child_diaper_records')
+          .select('id, user_id, child_id, recorded_at, diaper_type, amount, stool_color, stool_texture, memo, created_at, updated_at, deleted_at')
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('child_diaper_records')
+          .select('id, diaper_type')
+          .eq('child_id', child.id)
+          .is('deleted_at', null)
+          .gte('recorded_at', todayStartKST),
         child.status === 'born' && child.birth_date
           ? supabase
               .from('vaccines')
@@ -143,6 +165,10 @@ export default async function DashboardPage() {
     latestFeedingRecord = feedingResult.data as Tables<'child_feeding_records'> | null
     latestSleepRecord = sleepResult.data as Tables<'child_sleep_records'> | null
     latestHealthRecord = healthResult.data as Tables<'child_health_records'> | null
+    latestDiaperRecord = diaperResult.data as Tables<'child_diaper_records'> | null
+    const todayDiapers = (diaperTodayResult.data ?? []) as Pick<Tables<'child_diaper_records'>, 'id' | 'diaper_type'>[]
+    todayDiaperUrine = todayDiapers.filter((r) => r.diaper_type === 'urine' || r.diaper_type === 'both').length
+    todayDiaperStool = todayDiapers.filter((r) => r.diaper_type === 'stool' || r.diaper_type === 'both').length
 
     const { data: communityData } = await supabase
       .from('community_posts')
@@ -551,6 +577,57 @@ export default async function DashboardPage() {
             ) : (
               <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
                 <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">오늘 배변</h3>
+              <Link href="/diaper" className="babyroad-link">
+                기록하기
+              </Link>
+            </div>
+
+            {todayDiaperUrine === 0 && todayDiaperStool === 0 ? (
+              latestDiaperRecord ? (
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {{ urine: '소변', stool: '대변', both: '소변+대변' }[latestDiaperRecord.diaper_type] ?? latestDiaperRecord.diaper_type}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatDateTime(latestDiaperRecord.recorded_at)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[#CFE3D8] bg-white/55 p-4 text-center">
+                  <p className="text-sm text-slate-500">아직 등록된 기록이 없어요.</p>
+                </div>
+              )
+            ) : (
+              <div className="flex gap-3">
+                {todayDiaperUrine > 0 && (
+                  <div className="flex-1 rounded-2xl bg-sky-50 px-3 py-2.5 text-center">
+                    <p className="text-xs text-sky-600">소변</p>
+                    <p className="mt-1 text-lg font-black text-sky-700">{todayDiaperUrine}<span className="text-xs font-semibold">회</span></p>
+                  </div>
+                )}
+                {todayDiaperStool > 0 && (
+                  <div className="flex-1 rounded-2xl bg-[#FFF3E9] px-3 py-2.5 text-center">
+                    <p className="text-xs text-[#D77C5B]">대변</p>
+                    <p className="mt-1 text-lg font-black text-[#D77C5B]">{todayDiaperStool}<span className="text-xs font-semibold">회</span></p>
+                  </div>
+                )}
+                {latestDiaperRecord && (
+                  <div className="flex flex-1 flex-col justify-center">
+                    <p className="text-xs text-slate-400">최근</p>
+                    <p className="mt-0.5 text-xs font-medium text-slate-600">
+                      {formatDateTime(latestDiaperRecord.recorded_at)}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </Card>

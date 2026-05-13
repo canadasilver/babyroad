@@ -271,6 +271,13 @@ export default async function MypagePage() {
                 <span className="text-sm font-medium text-[#25344A]">건강 기록</span>
                 <span className="text-slate-400">›</span>
               </a>
+              <a
+                href="/diaper"
+                className="flex items-center justify-between rounded-2xl px-3 py-3 hover:bg-[#EAF6F2]/70"
+              >
+                <span className="text-sm font-medium text-[#25344A]">배변 기록</span>
+                <span className="text-slate-400">›</span>
+              </a>
             </div>
           </Card>
 

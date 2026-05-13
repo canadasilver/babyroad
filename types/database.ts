@@ -750,6 +750,47 @@ export interface Database {
         }
         Relationships: []
       }
+      child_diaper_records: {
+        Row: {
+          id: string
+          user_id: string
+          child_id: string
+          recorded_at: string
+          diaper_type: 'urine' | 'stool' | 'both'
+          stool_color: 'yellow' | 'brown' | 'green' | 'dark' | 'red' | 'white' | 'other' | null
+          stool_texture: 'watery' | 'soft' | 'normal' | 'hard' | 'mucus' | 'other' | null
+          amount: 'small' | 'normal' | 'large' | null
+          memo: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          child_id: string
+          recorded_at: string
+          diaper_type: 'urine' | 'stool' | 'both'
+          stool_color?: 'yellow' | 'brown' | 'green' | 'dark' | 'red' | 'white' | 'other' | null
+          stool_texture?: 'watery' | 'soft' | 'normal' | 'hard' | 'mucus' | 'other' | null
+          amount?: 'small' | 'normal' | 'large' | null
+          memo?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          recorded_at?: string
+          diaper_type?: 'urine' | 'stool' | 'both'
+          stool_color?: 'yellow' | 'brown' | 'green' | 'dark' | 'red' | 'white' | 'other' | null
+          stool_texture?: 'watery' | 'soft' | 'normal' | 'hard' | 'mucus' | 'other' | null
+          amount?: 'small' | 'normal' | 'large' | null
+          memo?: string | null
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
       development_guides: {
         Row: {
           id: string
@@ -820,3 +861,8 @@ export type TablesInsert<T extends keyof Database['public']['Tables']> =
 
 export type TablesUpdate<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Update']
+
+export type DiaperType = 'urine' | 'stool' | 'both'
+export type StoolColor = 'yellow' | 'brown' | 'green' | 'dark' | 'red' | 'white' | 'other'
+export type StoolTexture = 'watery' | 'soft' | 'normal' | 'hard' | 'mucus' | 'other'
+export type DiaperAmount = 'small' | 'normal' | 'large'
