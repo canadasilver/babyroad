@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildForUser } from '@/lib/children'
+import { getChildRole, canEditRecords } from '@/lib/collaborator'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -27,10 +28,12 @@ export default async function HealthPage() {
   if (!child) redirect('/onboarding')
 
   const supabase = await createClient()
+  const role = await getChildRole(user.id, child.id)
+  const canEdit = canEditRecords(role)
+
   const { data } = await supabase
     .from('child_health_records')
     .select('*')
-    .eq('user_id', user.id)
     .eq('child_id', child.id)
     .is('deleted_at', null)
     .order('recorded_at', { ascending: false })
@@ -53,8 +56,14 @@ export default async function HealthPage() {
 
           <ChildSummaryCard child={child} />
           <HealthSummaryCard records={records} />
-          <HealthRecordForm userId={user.id} childId={child.id} />
-          <HealthRecordList records={records} />
+          {canEdit ? (
+            <HealthRecordForm userId={user.id} childId={child.id} />
+          ) : (
+            <p className="rounded-2xl border border-[#CFE3D8] bg-[#EAF6F2]/60 px-4 py-3 text-center text-sm text-[#4FA99A]">
+              보기만 가능한 보호자입니다. 기록 입력은 제한됩니다.
+            </p>
+          )}
+          <HealthRecordList records={records} canEdit={canEdit} />
 
           <MedicalDisclaimer />
         </div>

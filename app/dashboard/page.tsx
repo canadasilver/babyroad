@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildForUser } from '@/lib/children'
 import { createClient } from '@/lib/supabase/server'
+import { getChildRole, canEditRecords } from '@/lib/collaborator'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
 import Card from '@/components/common/Card'
@@ -63,6 +64,8 @@ export default async function DashboardPage() {
 
   const child = await getActiveChildForUser(user.id, profile)
   const supabase = await createClient()
+  const role = child ? await getChildRole(user.id, child.id) : null
+  const canEdit = canEditRecords(role)
 
   let latestGrowthRecord: ChildGrowthRecord | null = null
   let latestFeedingRecord: Tables<'child_feeding_records'> | null = null
@@ -84,7 +87,6 @@ export default async function DashboardPage() {
         supabase
           .from('child_growth_records')
           .select('id, user_id, child_id, record_date, height, weight, head_circumference, memo, created_at, updated_at, deleted_at')
-          .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
           .order('record_date', { ascending: false })
@@ -94,7 +96,6 @@ export default async function DashboardPage() {
         supabase
           .from('child_feeding_records')
           .select('id, user_id, child_id, recorded_at, feeding_type, amount, unit, food_name, reaction, memo, created_at, updated_at, deleted_at')
-          .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
           .order('recorded_at', { ascending: false })
@@ -103,7 +104,6 @@ export default async function DashboardPage() {
         supabase
           .from('child_sleep_records')
           .select('id, user_id, child_id, sleep_start, sleep_end, sleep_type, wake_count, memo, created_at, updated_at, deleted_at')
-          .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
           .order('sleep_start', { ascending: false })
@@ -112,7 +112,6 @@ export default async function DashboardPage() {
         supabase
           .from('child_health_records')
           .select('id, user_id, child_id, recorded_at, temperature, symptoms, medicine, hospital_name, memo, created_at, updated_at, deleted_at')
-          .eq('user_id', user.id)
           .eq('child_id', child.id)
           .is('deleted_at', null)
           .order('recorded_at', { ascending: false })
@@ -135,7 +134,6 @@ export default async function DashboardPage() {
           ? supabase
               .from('child_vaccination_records')
               .select('vaccine_schedule_id, status')
-              .eq('user_id', user.id)
               .eq('child_id', child.id)
               .is('deleted_at', null)
           : Promise.resolve({ data: null }),

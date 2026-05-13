@@ -35,9 +35,10 @@ const TYPE_COLOR: Record<string, string> = {
 
 interface FeedingRecordItemProps {
   record: Tables<'child_feeding_records'>
+  canEdit?: boolean
 }
 
-export default function FeedingRecordItem({ record }: FeedingRecordItemProps) {
+export default function FeedingRecordItem({ record, canEdit = true }: FeedingRecordItemProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -98,21 +99,23 @@ export default function FeedingRecordItem({ record }: FeedingRecordItemProps) {
               {record.amount}{unitLabel}
             </p>
           )}
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/feeding/${record.id}/edit`}
-              className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
-            >
-              수정
-            </Link>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
-            >
-              {isDeleting ? '삭제 중' : '삭제'}
-            </button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/feeding/${record.id}/edit`}
+                className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+              >
+                수정
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
+              >
+                {isDeleting ? '삭제 중' : '삭제'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

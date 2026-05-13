@@ -11,9 +11,10 @@ import type { ChildGrowthRecord } from '@/types/child'
 
 interface GrowthRecordItemProps {
   record: ChildGrowthRecord
+  canEdit?: boolean
 }
 
-export default function GrowthRecordItem({ record }: GrowthRecordItemProps) {
+export default function GrowthRecordItem({ record, canEdit = true }: GrowthRecordItemProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -55,21 +56,23 @@ export default function GrowthRecordItem({ record }: GrowthRecordItemProps) {
             저장일 {formatDate(record.created_at)}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link
-            href={`/growth/${record.id}/edit`}
-            className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
-          >
-            수정
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
-          >
-            {isDeleting ? '삭제 중' : '삭제'}
-          </button>
-        </div>
+        {canEdit && (
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href={`/growth/${record.id}/edit`}
+              className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+            >
+              수정
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
+            >
+              {isDeleting ? '삭제 중' : '삭제'}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">

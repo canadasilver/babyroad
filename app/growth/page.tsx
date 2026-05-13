@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildForUser } from '@/lib/children'
+import { getChildRole, canEditRecords } from '@/lib/collaborator'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -26,11 +27,12 @@ export default async function GrowthPage() {
   if (!child) redirect('/onboarding')
 
   const supabase = await createClient()
+  const role = await getChildRole(user.id, child.id)
+  const canEdit = canEditRecords(role)
 
   const { data: records } = await supabase
     .from('child_growth_records')
     .select('id, user_id, child_id, record_date, height, weight, head_circumference, memo, created_at, updated_at, deleted_at')
-    .eq('user_id', user.id)
     .eq('child_id', child.id)
     .is('deleted_at', null)
     .order('record_date', { ascending: false })
@@ -53,7 +55,7 @@ export default async function GrowthPage() {
                   키, 몸무게, 머리둘레를 기록하고 성장 변화를 확인해요.
                 </p>
               </div>
-              {child.birth_date && (
+              {child.birth_date && canEdit && (
                 <Link
                   href="/growth/backfill"
                   className="shrink-0 rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] hover:bg-[#D4EDE6] transition-colors"
@@ -66,9 +68,15 @@ export default async function GrowthPage() {
 
           <GrowthSummaryCard child={child} latestRecord={latestRecord} />
 
-          <GrowthRecordForm userId={user.id} childId={child.id} />
+          {canEdit ? (
+            <GrowthRecordForm userId={user.id} childId={child.id} />
+          ) : (
+            <p className="rounded-2xl border border-[#CFE3D8] bg-[#EAF6F2]/60 px-4 py-3 text-center text-sm text-[#4FA99A]">
+              보기만 가능한 보호자입니다. 기록 입력은 제한됩니다.
+            </p>
+          )}
 
-          {growthRecords.length === 0 && child.birth_date && (
+          {canEdit && growthRecords.length === 0 && child.birth_date && (
             <div className="rounded-[1.25rem] border border-[#CFE3D8] bg-[#EAF6F2]/60 px-4 py-4 text-center">
               <p className="text-sm font-medium text-[#2F766E]">이전에 기록된 성장 데이터가 있나요?</p>
               <p className="mt-1 text-xs text-[#6B9E95]">출생 시부터 지금까지 키와 몸무게를 한번에 입력할 수 있어요.</p>
@@ -81,7 +89,7 @@ export default async function GrowthPage() {
             </div>
           )}
 
-          <GrowthRecordList records={growthRecords} />
+          <GrowthRecordList records={growthRecords} canEdit={canEdit} />
 
           <MedicalDisclaimer />
         </div>

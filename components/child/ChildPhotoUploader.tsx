@@ -17,6 +17,7 @@ type ChildPhotoUploaderProps = {
   status: string
   compact?: boolean
   editHref?: string
+  isOwner?: boolean
 }
 
 const ICON: Record<string, string> = {
@@ -34,6 +35,7 @@ export default function ChildPhotoUploader({
   status,
   compact = false,
   editHref,
+  isOwner = true,
 }: ChildPhotoUploaderProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -167,7 +169,7 @@ export default function ChildPhotoUploader({
           </Link>
         ) : null}
 
-        {isBusy ? (
+        {isOwner && (isBusy ? (
           <span className="inline-flex min-h-8 w-full items-center justify-center rounded-full bg-[#EAF6F2] px-3 text-xs font-semibold text-[#9AA8BA]">
             {uploading ? '업로드 중...' : '삭제 중...'}
           </span>
@@ -193,7 +195,7 @@ export default function ChildPhotoUploader({
               삭제
             </button>
           </div>
-        )}
+        ))}
 
         {message && (
           <p className={`text-right text-xs ${isError ? 'text-red-500' : 'text-[#2F766E]'}`}>
@@ -280,38 +282,40 @@ export default function ChildPhotoUploader({
         className="hidden"
       />
 
-      <div className="flex flex-wrap justify-center gap-2">
-        {previewUrl ? (
-          <>
-            <AppButton variant="primary" size="sm" loading={uploading} onClick={handleUploadFull}>
-              {uploading ? '저장 중...' : '이 사진으로 저장'}
-            </AppButton>
-            <AppButton
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setPreviewUrl(null)
-                if (fileInputRef.current) fileInputRef.current.value = ''
-              }}
-            >
-              취소
-            </AppButton>
-          </>
-        ) : (
-          <>
-            <AppButton variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-              {currentPhotoUrl ? '사진 변경' : '사진 등록'}
-            </AppButton>
-            {currentPhotoUrl && (
-              <AppButton variant="outline" size="sm" loading={deleting} onClick={doDelete}>
-                {deleting ? '삭제 중...' : '사진 삭제'}
+      {isOwner && (
+        <div className="flex flex-wrap justify-center gap-2">
+          {previewUrl ? (
+            <>
+              <AppButton variant="primary" size="sm" loading={uploading} onClick={handleUploadFull}>
+                {uploading ? '저장 중...' : '이 사진으로 저장'}
               </AppButton>
-            )}
-          </>
-        )}
-      </div>
+              <AppButton
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPreviewUrl(null)
+                  if (fileInputRef.current) fileInputRef.current.value = ''
+                }}
+              >
+                취소
+              </AppButton>
+            </>
+          ) : (
+            <>
+              <AppButton variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                {currentPhotoUrl ? '사진 변경' : '사진 등록'}
+              </AppButton>
+              {currentPhotoUrl && (
+                <AppButton variant="outline" size="sm" loading={deleting} onClick={doDelete}>
+                  {deleting ? '삭제 중...' : '사진 삭제'}
+                </AppButton>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
-      <p className="text-xs text-[#9AA8BA]">jpg, png, webp · 최대 5MB</p>
+      {isOwner && <p className="text-xs text-[#9AA8BA]">jpg, png, webp · 최대 5MB</p>}
     </div>
   )
 }

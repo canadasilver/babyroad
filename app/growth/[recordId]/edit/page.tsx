@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildForUser } from '@/lib/children'
+import { getChildRole, canEditRecords } from '@/lib/collaborator'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -28,13 +29,15 @@ export default async function GrowthEditPage({ params }: PageProps) {
   const child = await getActiveChildForUser(user.id, profile)
   if (!child) redirect('/onboarding')
 
+  const role = await getChildRole(user.id, child.id)
+  if (!canEditRecords(role)) notFound()
+
   const supabase = await createClient()
 
   const { data: recordData } = await supabase
     .from('child_growth_records')
     .select('id, user_id, child_id, record_date, height, weight, head_circumference, memo, created_at, updated_at, deleted_at')
     .eq('id', recordId)
-    .eq('user_id', user.id)
     .eq('child_id', child.id)
     .is('deleted_at', null)
     .maybeSingle()

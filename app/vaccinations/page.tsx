@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildForUser } from '@/lib/children'
+import { getChildRole, canEditRecords } from '@/lib/collaborator'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/layout/Header'
 import BottomNav from '@/components/layout/BottomNav'
@@ -34,6 +35,8 @@ export default async function VaccinationsPage() {
   if (!child) redirect('/onboarding')
 
   const supabase = await createClient()
+  const role = await getChildRole(user.id, child.id)
+  const canEdit = canEditRecords(role)
 
   if (child.status === 'pregnancy') {
     return (
@@ -96,7 +99,6 @@ export default async function VaccinationsPage() {
       supabase
         .from('child_vaccination_records')
         .select('*')
-        .eq('user_id', user.id)
         .eq('child_id', child.id)
         .is('deleted_at', null),
     ])
@@ -205,6 +207,7 @@ export default async function VaccinationsPage() {
             items={scheduleItems}
             userId={user.id}
             childId={child.id}
+            canEdit={canEdit}
           />
 
           <MedicalDisclaimer />

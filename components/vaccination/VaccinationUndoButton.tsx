@@ -25,7 +25,6 @@ export default function VaccinationUndoButton({ recordId, userId }: VaccinationU
       const { error } = await (supabase.from('child_vaccination_records') as any)
         .delete()
         .eq('id', recordId)
-        .eq('user_id', userId)
 
       if (error) {
         setErrorMessage('취소 처리 중 문제가 발생했습니다.')

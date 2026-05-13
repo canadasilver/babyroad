@@ -42,7 +42,6 @@ export default async function GrowthReportPage() {
   const { data: recordsData } = await supabase
     .from('child_growth_records')
     .select('id, user_id, child_id, record_date, height, weight, head_circumference, memo, created_at, updated_at, deleted_at')
-    .eq('user_id', user.id)
     .eq('child_id', child.id)
     .is('deleted_at', null)
     .order('record_date', { ascending: true })

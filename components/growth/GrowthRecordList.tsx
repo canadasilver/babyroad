@@ -4,9 +4,10 @@ import type { ChildGrowthRecord } from '@/types/child'
 
 interface GrowthRecordListProps {
   records: ChildGrowthRecord[]
+  canEdit?: boolean
 }
 
-export default function GrowthRecordList({ records }: GrowthRecordListProps) {
+export default function GrowthRecordList({ records, canEdit = true }: GrowthRecordListProps) {
   return (
     <section className="space-y-3">
       <div>
@@ -22,7 +23,7 @@ export default function GrowthRecordList({ records }: GrowthRecordListProps) {
       ) : (
         <div className="space-y-3">
           {records.map((record) => (
-            <GrowthRecordItem key={record.id} record={record} />
+            <GrowthRecordItem key={record.id} record={record} canEdit={canEdit} />
           ))}
         </div>
       )}

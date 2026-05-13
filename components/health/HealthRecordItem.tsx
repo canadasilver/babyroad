@@ -9,9 +9,10 @@ import type { Tables } from '@/types/database'
 
 interface HealthRecordItemProps {
   record: Tables<'child_health_records'>
+  canEdit?: boolean
 }
 
-export default function HealthRecordItem({ record }: HealthRecordItemProps) {
+export default function HealthRecordItem({ record, canEdit = true }: HealthRecordItemProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -74,21 +75,23 @@ export default function HealthRecordItem({ record }: HealthRecordItemProps) {
               발열
             </span>
           )}
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/health/${record.id}/edit`}
-              className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
-            >
-              수정
-            </Link>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
-            >
-              {isDeleting ? '삭제 중' : '삭제'}
-            </button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/health/${record.id}/edit`}
+                className="rounded-full bg-[#EAF6F2] px-3 py-1 text-xs font-semibold text-[#2F8F84] transition-colors hover:bg-[#D4EDE6]"
+              >
+                수정
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-full bg-[#FFF3E9] px-3 py-1 text-xs font-semibold text-[#C47B5A] transition-colors hover:bg-[#FDEADE] disabled:opacity-50"
+              >
+                {isDeleting ? '삭제 중' : '삭제'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

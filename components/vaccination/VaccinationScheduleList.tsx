@@ -15,12 +15,14 @@ interface VaccinationScheduleListProps {
   items: VaccinationScheduleItem[]
   userId: string
   childId: string
+  canEdit?: boolean
 }
 
 export default function VaccinationScheduleList({
   items,
   userId,
   childId,
+  canEdit = true,
 }: VaccinationScheduleListProps) {
   if (items.length === 0) {
     return (
@@ -45,6 +47,7 @@ export default function VaccinationScheduleList({
                 item={item}
                 userId={userId}
                 childId={childId}
+                canEdit={canEdit}
               />
             ))}
           </div>
@@ -61,6 +64,7 @@ export default function VaccinationScheduleList({
                 item={item}
                 userId={userId}
                 childId={childId}
+                canEdit={canEdit}
               />
             ))}
           </div>
@@ -74,10 +78,12 @@ function VaccinationScheduleRow({
   item,
   userId,
   childId,
+  canEdit,
 }: {
   item: VaccinationScheduleItem
   userId: string
   childId: string
+  canEdit?: boolean
 }) {
   const config = STATUS_CONFIG[item.uiStatus]
 
@@ -116,7 +122,7 @@ function VaccinationScheduleRow({
           >
             {config.label}
           </span>
-          {(item.uiStatus === 'available' || item.uiStatus === 'delayed') && (
+          {canEdit && (item.uiStatus === 'available' || item.uiStatus === 'delayed') && (
             <VaccinationCompleteButton
               userId={userId}
               childId={childId}
@@ -125,7 +131,7 @@ function VaccinationScheduleRow({
               scheduledDate={item.scheduledDate}
             />
           )}
-          {item.uiStatus === 'completed' && item.recordId && (
+          {canEdit && item.uiStatus === 'completed' && item.recordId && (
             <VaccinationUndoButton recordId={item.recordId} userId={userId} />
           )}
         </div>

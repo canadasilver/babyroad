@@ -3,9 +3,10 @@ import type { Tables } from '@/types/database'
 
 interface SleepRecordListProps {
   records: Tables<'child_sleep_records'>[]
+  canEdit?: boolean
 }
 
-export default function SleepRecordList({ records }: SleepRecordListProps) {
+export default function SleepRecordList({ records, canEdit = true }: SleepRecordListProps) {
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold text-slate-700">최근 기록</h2>
@@ -16,7 +17,7 @@ export default function SleepRecordList({ records }: SleepRecordListProps) {
       ) : (
         <div className="space-y-2">
           {records.map((record) => (
-            <SleepRecordItem key={record.id} record={record} />
+            <SleepRecordItem key={record.id} record={record} canEdit={canEdit} />
           ))}
         </div>
       )}

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAuthUser, getProfile } from '@/lib/auth'
 import { getActiveChildContext } from '@/lib/children'
+import { getChildRole, canManageChild, getRoleLabel } from '@/lib/collaborator'
 import CollaboratorList from '@/components/child/CollaboratorList'
 import type { CollaboratorWithProfile } from '@/types/child'
 import Header from '@/components/layout/Header'
@@ -32,6 +33,9 @@ export default async function MypagePage() {
   const { children: allChildren, activeChild } = await getActiveChildContext(user.id, profile)
   const otherChildren = allChildren.filter((c) => c.id !== activeChild?.id)
 
+  const activeChildRole = activeChild ? await getChildRole(user.id, activeChild.id) : null
+  const isOwner = canManageChild(activeChildRole)
+
   let latestGrowthRecord: ChildGrowthRecord | null = null
   let collaborators: CollaboratorWithProfile[] = []
 
@@ -42,7 +46,6 @@ export default async function MypagePage() {
       supabase
         .from('child_growth_records')
         .select('*')
-        .eq('user_id', user.id)
         .eq('child_id', activeChild.id)
         .is('deleted_at', null)
         .order('record_date', { ascending: false })
@@ -121,6 +124,11 @@ export default async function MypagePage() {
                   <span className="rounded-full bg-[#4FA99A]/15 px-2.5 py-0.5 text-xs font-semibold text-[#2F766E]">
                     현재 선택 중
                   </span>
+                  {activeChildRole && (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                      {getRoleLabel(activeChildRole)}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-start gap-3 min-[380px]:gap-4">
                   <ChildAvatar
@@ -145,7 +153,8 @@ export default async function MypagePage() {
                     gender={activeChild.gender}
                     status={activeChild.status}
                     compact
-                    editHref={`/mypage/child/${activeChild.id}/edit`}
+                    isOwner={isOwner}
+                    editHref={isOwner ? `/mypage/child/${activeChild.id}/edit` : undefined}
                   />
                 </div>
               </div>

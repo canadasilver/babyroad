@@ -3,9 +3,10 @@ import type { Tables } from '@/types/database'
 
 interface FeedingRecordListProps {
   records: Tables<'child_feeding_records'>[]
+  canEdit?: boolean
 }
 
-export default function FeedingRecordList({ records }: FeedingRecordListProps) {
+export default function FeedingRecordList({ records, canEdit = true }: FeedingRecordListProps) {
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold text-slate-700">최근 기록</h2>
@@ -16,7 +17,7 @@ export default function FeedingRecordList({ records }: FeedingRecordListProps) {
       ) : (
         <div className="space-y-2">
           {records.map((record) => (
-            <FeedingRecordItem key={record.id} record={record} />
+            <FeedingRecordItem key={record.id} record={record} canEdit={canEdit} />
           ))}
         </div>
       )}

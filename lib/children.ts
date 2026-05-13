@@ -24,11 +24,11 @@ export async function getChildrenForUser(userId: string): Promise<Child[]> {
 
 export async function setActiveChild(userId: string, childId: string): Promise<boolean> {
   const supabase = await createClient()
+  // RLS (children_select_own + children_select_collaborator) ensures only accessible children are returned.
   const { data: child } = await supabase
     .from('children')
     .select('id')
     .eq('id', childId)
-    .eq('user_id', userId)
     .is('deleted_at', null)
     .maybeSingle()
 

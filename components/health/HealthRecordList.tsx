@@ -3,9 +3,10 @@ import type { Tables } from '@/types/database'
 
 interface HealthRecordListProps {
   records: Tables<'child_health_records'>[]
+  canEdit?: boolean
 }
 
-export default function HealthRecordList({ records }: HealthRecordListProps) {
+export default function HealthRecordList({ records, canEdit = true }: HealthRecordListProps) {
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold text-slate-700">최근 기록</h2>
@@ -16,7 +17,7 @@ export default function HealthRecordList({ records }: HealthRecordListProps) {
       ) : (
         <div className="space-y-2">
           {records.map((record) => (
-            <HealthRecordItem key={record.id} record={record} />
+            <HealthRecordItem key={record.id} record={record} canEdit={canEdit} />
           ))}
         </div>
       )}
